@@ -37,31 +37,30 @@ def batch_elastic_transform(images, sigma, alpha, height, width, random_state=No
         dy = gaussian_filter((random_state.rand(height, width) * 2 - 1), sigma, mode='constant') * alpha
         indices = x + dx, y + dy
         e_images[i] = map_coordinates(e_images[i], indices, order=1)
-
     return e_images.reshape(-1, 784)
 
 
-def list_of_distances(X, Y):
+def list_of_distances(x, y):
     """
     Given a list of vectors, X = [x_1, ..., x_n], and another list of vectors,
     Y = [y_1, ... , y_m], we return a list of vectors
             [[d(x_1, y_1), d(x_1, y_2), ... , d(x_1, y_m)],
              ...
              [d(x_n, y_1), d(x_n, y_2), ... , d(x_n, y_m)]],
-    where the distance metric used is the sqared euclidean distance.
+    where the distance metric used is the squared euclidean distance.
     The computation is achieved through a clever use of broadcasting.
     """
-    XX = tf.reshape(list_of_norms(X), shape=(-1, 1))
-    YY = tf.reshape(list_of_norms(Y), shape=(1, -1))
-    output = XX + YY - 2 * tf.matmul(X, tf.transpose(Y))
-
+    xx = torch.reshape(list_of_norms(x), shape=(-1, 1))
+    yy = torch.reshape(list_of_norms(y), shape=(1, -1))
+    print(list_of_norms(x))
+    output = xx + yy - 2 * torch.matmul(x, torch.t(y))
     return output
 
 
-def list_of_norms(X):
+def list_of_norms(x):
     """
     X is a list of vectors X = [x_1, ..., x_n], we return
         [d(x_1, x_1), d(x_2, x_2), ... , d(x_n, x_n)], where the distance
     function is the squared euclidean distance.
     """
-    return tf.reduce_sum(tf.pow(X, 2), axis=1)
+    return torch.pow(x, 2).sum(dim=1)
