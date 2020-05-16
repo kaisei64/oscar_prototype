@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 from util_func import split_train_val, batch_elastic_transform
