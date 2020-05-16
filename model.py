@@ -1,4 +1,3 @@
-import torch.nn as nn
 import torch.nn.functional as F
 from dataset import *
 from util_func import list_of_distances
