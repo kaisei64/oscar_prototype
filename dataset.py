@@ -7,6 +7,7 @@ from util_func import split_train_val, batch_elastic_transform
 device = 'cuda'
 dtype = torch.float
 criterion = nn.CrossEntropyLoss()
+batch_size = 250
 
 transform_train = transforms.Compose([
     transforms.ToTensor(),
@@ -26,15 +27,15 @@ test_dataset = torchvision.datasets.MNIST(root='./data/',
                                           download=True)
 
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                           batch_size=256,
+                                           batch_size=batch_size,
                                            shuffle=True,
                                            num_workers=2)
 val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
-                                         batch_size=256,
+                                         batch_size=batch_size,
                                          shuffle=True,
                                          num_workers=2)
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                          batch_size=256,
+                                          batch_size=batch_size,
                                           shuffle=False,
                                           num_workers=2)
 
