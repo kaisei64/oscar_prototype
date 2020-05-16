@@ -1,10 +1,12 @@
 import torch
 import torchvision
+import torch.nn as nn
 import torchvision.transforms as transforms
 from util_func import split_train_val, batch_elastic_transform
 
 device = 'cuda'
 dtype = torch.float
+criterion = nn.CrossEntropyLoss()
 
 transform_train = transforms.Compose([
     transforms.ToTensor(),
