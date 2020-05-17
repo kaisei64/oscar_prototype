@@ -1,5 +1,7 @@
 import torch
 import numpy as np
+import cloudpickle
+import pandas as pd
 from scipy.ndimage.interpolation import map_coordinates
 from scipy.ndimage.filters import gaussian_filter
 
@@ -63,3 +65,13 @@ def list_of_norms(x):
     function is the squared euclidean distance.
     """
     return torch.pow(x, 2).sum(dim=1)
+
+
+def result_save(path, learning_history):
+    df = pd.DataFrame.from_dict(learning_history)
+    df.to_csv(path)
+
+
+def parameter_save(path, param):
+    with open(path, 'wb') as f:
+        cloudpickle.dump(param, f)
