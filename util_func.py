@@ -52,7 +52,6 @@ def list_of_distances(x, y):
     """
     xx = torch.reshape(list_of_norms(x), shape=(-1, 1))
     yy = torch.reshape(list_of_norms(y), shape=(1, -1))
-    print(list_of_norms(x))
     output = xx + yy - 2 * torch.matmul(x, torch.t(y))
     return output
 
