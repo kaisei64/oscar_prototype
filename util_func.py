@@ -75,3 +75,8 @@ def result_save(path, learning_history):
 def parameter_save(path, param):
     with open(path, 'wb') as f:
         cloudpickle.dump(param, f)
+
+
+def parameter_use(path):
+    with open(path, 'rb') as f:
+        return cloudpickle.load(f)
