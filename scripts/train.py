@@ -107,18 +107,18 @@ for epoch in range(num_epochs):
     learning_history['val_error_1_loss'].append(f'{avg_val_error_1:.4e}')
     learning_history['val_error_2_loss'].append(f'{avg_val_error_2:.4e}')
     learning_history['test_acc'].append(f'{avg_test_acc:.4f}')
-    result_save('./result/csv/train_history.csv', learning_history)
+    result_save(f'./result/csv/train_history_{prototype_num}.csv', learning_history)
 
     # save model, prototype and ae_out
     if epoch % save_step == 0 or epoch == num_epochs - 1:
         with torch.no_grad():
-            parameter_save(f'./result/pkl/train_model_{epoch+1}.pkl', net)
+            parameter_save(f'./result/pkl/train_model_epoch{epoch+1}_{prototype_num}.pkl', net)
 
             prototype_imgs = net.decoder(
                 net.prototype_feature_vectors.reshape(prototype_num, class_num, 2, 2)).cpu().numpy()
             n_cols = 5
             n_rows = prototype_num // n_cols + 1 if prototype_num % n_cols != 0 else prototype_num // n_cols
-            g, b = plt.subplots(n_rows, n_cols, figsize=(n_cols, n_rows))
+            g, b = plt.subplots(n_rows, n_cols, figsize=(n_cols, n_rows), squeeze=False)
             for i in range(n_rows):
                 for j in range(n_cols):
                     if i * n_cols + j < prototype_num:
@@ -126,14 +126,15 @@ for epoch in range(num_epochs):
                                        cmap='gray',
                                        interpolation='none')
                         b[i][j].axis('off')
-            plt.savefig(f'./result/png/prototype_{epoch+1}.png', transparent=True, bbox_inches='tight', pad_inches=0)
+            plt.savefig(f'./result/png/prototype_epoch{epoch+1}_{prototype_num}.png',
+                        transparent=True, bbox_inches='tight', pad_inches=0)
             plt.close()
 
             examples_to_show = 10
             examples = [train_dataset[i][0] for i in range(examples_to_show)]
             examples = torch.cat(examples).reshape(len(examples), *examples[0].shape).to(device)
             encode_decode = net.decoder(net.encoder(examples))
-            f, a = plt.subplots(2, examples_to_show, figsize=(examples_to_show, 2))
+            f, a = plt.subplots(2, examples_to_show, figsize=(examples_to_show, 2), squeeze=False)
             for i in range(examples_to_show):
                 a[0][i].imshow(examples[i].cpu().numpy().reshape(28, 28),
                                cmap='gray',
@@ -143,5 +144,6 @@ for epoch in range(num_epochs):
                                cmap='gray',
                                interpolation='none')
                 a[1][i].axis('off')
-            plt.savefig(f'./result/png/ae_decode_{epoch+1}.png', transparent=True, bbox_inches='tight', pad_inches=0)
+            plt.savefig(f'./result/png/ae_decode_epoch{epoch+1}_{prototype_num}.png',
+                        transparent=True, bbox_inches='tight', pad_inches=0)
             plt.close()
