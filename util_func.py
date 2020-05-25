@@ -1,3 +1,4 @@
+import dataset
 import torch
 import numpy as np
 import cloudpickle
@@ -39,7 +40,7 @@ def batch_elastic_transform(images, sigma, alpha, height, width, random_state=No
         dy = gaussian_filter((random_state.rand(height, width) * 2 - 1), sigma, mode='constant') * alpha
         indices = x + dx, y + dy
         e_images[i] = map_coordinates(e_images[i], indices, order=1)
-    return e_images.reshape(-1, 784)
+    return e_images.reshape(-1, dataset.in_height*dataset.in_width)
 
 
 def list_of_distances(x, y):

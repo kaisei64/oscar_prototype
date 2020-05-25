@@ -3,7 +3,7 @@ import sys
 pardir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(pardir)
 from dataset import *
-from model import ProtoNet, class_num, prototype_num
+from model import ProtoNet, class_num, prototype_num, in_channel_num
 from util_func import batch_elastic_transform, list_of_norms, result_save, parameter_save
 from loss import *
 import torch
@@ -21,7 +21,7 @@ net = ProtoNet().to(device)
 optimizer = optim.Adam(net.parameters(), lr=0.002)
 
 # training parameters
-num_epochs = 1500
+num_epochs = 500
 test_display_step = 100
 save_step = 50
 
@@ -34,8 +34,9 @@ for epoch in range(num_epochs):
     net.train()
     train_loss, train_acc, train_class_error, train_ae_error, train_error_1, train_error_2 = 0, 0, 0, 0, 0, 0
     for i, (images, labels) in enumerate(train_loader):
-        elastic_images = batch_elastic_transform(images.reshape(-1, 784),
-                                                 sigma=sigma, alpha=alpha, height=28, width=28).reshape(-1, 1, 28, 28)
+        elastic_images = batch_elastic_transform(images.reshape(-1, in_height*in_width), sigma=sigma, alpha=alpha,
+                                                 height=in_height, width=in_width)\
+                                                 .reshape(-1, in_channel_num, in_height, in_width)
         elastic_images, labels = torch.tensor(elastic_images, dtype=dtype).to(device), labels.to(device)
         optimizer.zero_grad()
         ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = net(elastic_images)
@@ -122,9 +123,11 @@ for epoch in range(num_epochs):
             for i in range(n_rows):
                 for j in range(n_cols):
                     if i * n_cols + j < prototype_num:
-                        b[i][j].imshow(prototype_imgs[i * n_cols + j].reshape(28, 28),
-                                       cmap='gray',
-                                       interpolation='none')
+                        b[i][j].imshow(
+                            # prototype_imgs[i * n_cols + j].reshape(in_height, in_width),
+                            prototype_imgs[i * n_cols + j].reshape(in_height, in_width, in_channel_num),
+                            cmap='gray',
+                            interpolation='none')
                         b[i][j].axis('off')
             plt.savefig(f'./result/png/prototype_epoch{epoch+1}_{prototype_num}.png',
                         transparent=True, bbox_inches='tight', pad_inches=0)
@@ -136,13 +139,17 @@ for epoch in range(num_epochs):
             encode_decode = net.decoder(net.encoder(examples))
             f, a = plt.subplots(2, examples_to_show, figsize=(examples_to_show, 2), squeeze=False)
             for i in range(examples_to_show):
-                a[0][i].imshow(examples[i].cpu().numpy().reshape(28, 28),
-                               cmap='gray',
-                               interpolation='none')
+                a[0][i].imshow(
+                    # examples[i].cpu().numpy().reshape(in_height, in_width),
+                    examples[i].cpu().numpy().reshape(in_height, in_width, in_channel_num),
+                    cmap='gray',
+                    interpolation='none')
                 a[0][i].axis('off')
-                a[1][i].imshow(encode_decode[i].cpu().numpy().reshape(28, 28),
-                               cmap='gray',
-                               interpolation='none')
+                a[1][i].imshow(
+                    # encode_decode[i].cpu().numpy().reshape(in_height, in_width),
+                    encode_decode[i].cpu().numpy().reshape(in_height, in_width, in_channel_num),
+                    cmap='gray',
+                    interpolation='none')
                 a[1][i].axis('off')
             plt.savefig(f'./result/png/ae_decode_epoch{epoch+1}_{prototype_num}.png',
                         transparent=True, bbox_inches='tight', pad_inches=0)

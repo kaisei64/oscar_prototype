@@ -4,6 +4,7 @@ from util_func import list_of_distances
 
 class_num = 10
 prototype_num = 15
+in_channel_num = 1
 
 
 class ProtoNet(nn.Module):
@@ -11,7 +12,7 @@ class ProtoNet(nn.Module):
     def __init__(self):
         super(ProtoNet, self).__init__()
         self.encoder = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1),
+            nn.Conv2d(in_channel_num, 32, kernel_size=3, stride=2, padding=1),
             nn.ReLU(inplace=True),
             nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1),
             nn.ReLU(inplace=True),
@@ -23,14 +24,16 @@ class ProtoNet(nn.Module):
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(class_num, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(32, 32, kernel_size=3, stride=2, padding=1),
+            nn.ConvTranspose2d(32, 32, kernel_size=3, stride=2, padding=1),  # if dataset is mnist
+            # nn.ConvTranspose2d(32, 32, kernel_size=3, stride=2, padding=1, output_padding=1),  # if dataset is cifar10
             nn.ReLU(inplace=True),
             nn.ConvTranspose2d(32, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(32, 1, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(32, in_channel_num, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.Sigmoid()
         )
-        self.prototype_feature_vectors = nn.Parameter(torch.nn.init.uniform_(torch.empty(prototype_num, 2*2*class_num)))
+        self.prototype_feature_vectors = nn.Parameter(
+            torch.nn.init.uniform_(torch.empty(prototype_num, 2 * 2 * class_num)))
         self.classifier = nn.Sequential(
             nn.Linear(prototype_num, class_num, bias=False)
         )
