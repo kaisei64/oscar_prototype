@@ -1,4 +1,3 @@
-import dataset
 import torch
 import numpy as np
 import cloudpickle
@@ -25,6 +24,7 @@ def batch_elastic_transform(images, sigma, alpha, height, width, random_state=No
 
     returns: an elastically distorted image of the same shape
     """
+    import dataset
     assert len(images.shape) == 2
     # the two lines below ensure we do not alter the array images
     e_images = np.empty_like(images)
