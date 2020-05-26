@@ -10,9 +10,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
-prototype = "5"
-# train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_1500.pkl')
-train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch1500_{prototype}.pkl')
+prototype = "15"
+train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_1500.pkl')
+# train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch1500_{prototype}.pkl')
+# train_net = parameter_use(f'./result/pkl/prototype_{prototype}_sub/train_model_epoch1500_{prototype}.pkl')
 
 examples_to_show = 10000
 examples = [train_dataset[i][0] for i in range(examples_to_show)]
@@ -32,7 +33,7 @@ pca.fit(con_vec)
 data_pca = pca.transform(con_vec)
 fig = plt.figure(figsize=(15, 12), facecolor='w')
 plt.rcParams["font.size"] = 15
-num = [i for i in range(model.class_num)]
+num = [i for i in range(int(prototype))]
 j = 0
 for i in range(examples_to_show + int(prototype)):
     # plot data
@@ -42,6 +43,6 @@ for i in range(examples_to_show + int(prototype)):
     else:
         plt.plot(data_pca[i][0], data_pca[i][1], ms=50.0, zorder=2, marker=".", color='gray')
         # show prototype order
-        plt.annotate(num[j], (data_pca[i][0], data_pca[i][1]), size=30)
+        plt.annotate(num[j], (data_pca[i][0], data_pca[i][1]), size=50)
         j += 1
-plt.show()
+plt.savefig(f'./result/png/prototype_{prototype}/distribution_map.png')
