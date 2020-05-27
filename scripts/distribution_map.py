@@ -34,7 +34,7 @@ pca.fit(con_vec)
 data_pca = pca.transform(con_vec)
 fig = plt.figure(figsize=(15, 12), facecolor='w')
 plt.rcParams["font.size"] = 15
-num = [i for i in range(int(prototype))]
+prototype_name = [chr(ord('A') + i) for i in range(int(prototype))]
 j = 0
 handles, label_keep = [], []
 for i in range(examples_to_show + int(prototype)):
@@ -49,7 +49,7 @@ for i in range(examples_to_show + int(prototype)):
     else:
         plt.plot(data_pca[i][0], data_pca[i][1], ms=50.0, zorder=2, marker=".", color='gray')
         # show prototype order
-        plt.annotate(num[j], (data_pca[i][0], data_pca[i][1]), size=30)
+        plt.annotate(prototype_name[j], (data_pca[i][0], data_pca[i][1]), size=30)
         j += 1
 legend_order = [color_set.index(val) for val in label_keep]
 handles_order = [legend_order.index(val) for val in range(model.class_num)]
