@@ -124,8 +124,8 @@ for epoch in range(num_epochs):
                 for j in range(n_cols):
                     if i * n_cols + j < prototype_num:
                         b[i][j].imshow(
-                            # prototype_imgs[i * n_cols + j].reshape(in_height, in_width),
-                            prototype_imgs[i * n_cols + j].reshape(in_height, in_width, in_channel_num),
+                            prototype_imgs[i * n_cols + j].reshape(in_height, in_width),
+                            # prototype_imgs[i * n_cols + j].reshape(in_height, in_width, in_channel_num),
                             cmap='gray',
                             interpolation='none')
                         b[i][j].axis('off')
@@ -140,14 +140,14 @@ for epoch in range(num_epochs):
             f, a = plt.subplots(2, examples_to_show, figsize=(examples_to_show, 2), squeeze=False)
             for i in range(examples_to_show):
                 a[0][i].imshow(
-                    # examples[i].cpu().numpy().reshape(in_height, in_width),
-                    examples[i].cpu().numpy().reshape(in_height, in_width, in_channel_num),
+                    examples[i].cpu().numpy().reshape(in_height, in_width),
+                    # examples[i].cpu().numpy().reshape(in_height, in_width, in_channel_num),
                     cmap='gray',
                     interpolation='none')
                 a[0][i].axis('off')
                 a[1][i].imshow(
-                    # encode_decode[i].cpu().numpy().reshape(in_height, in_width),
-                    encode_decode[i].cpu().numpy().reshape(in_height, in_width, in_channel_num),
+                    encode_decode[i].cpu().numpy().reshape(in_height, in_width),
+                    # encode_decode[i].cpu().numpy().reshape(in_height, in_width, in_channel_num),
                     cmap='gray',
                     interpolation='none')
                 a[1][i].axis('off')

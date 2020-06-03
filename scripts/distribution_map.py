@@ -10,10 +10,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
-prototype = "15"
-train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_1500.pkl')
-# train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch1500_{prototype}.pkl')
-# train_net = parameter_use(f'./result/pkl/prototype_{prototype}_sub/train_model_epoch1500_{prototype}.pkl')
+prototype = "4"
+# train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_500.pkl')
+train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
+# train_net = parameter_use(f'./result/pkl/prototype_{prototype}_sub/train_model_epoch500_{prototype}.pkl')
 
 examples_to_show = 10000
 examples = [train_dataset[i][0] for i in range(examples_to_show)]
