@@ -11,6 +11,7 @@ import torch.optim as optim
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import math
 
 learning_history = {'epoch': [], 'train_acc': [], 'train_total_loss': [], 'train_class_loss': [], 'train_ae_loss': [],
                     'train_error_1_loss': [], 'train_error_2_loss': [], 'val_acc': [], 'val_total_loss': [],
@@ -115,8 +116,12 @@ for epoch in range(num_epochs):
         with torch.no_grad():
             parameter_save(f'./result/pkl/train_model_epoch{epoch+1}_{prototype_num}.pkl', net)
 
-            prototype_imgs = net.decoder(
-                net.prototype_feature_vectors.reshape(prototype_num, class_num, 2, 2)).cpu().numpy()
+            f_width = int(math.sqrt(len(net.prototype_feature_vectors[1]) / class_num))
+            f_height = int(math.sqrt(len(net.prototype_feature_vectors[1]) / class_num))
+            # prototype_imgs = net.decoder(
+            prototype_imgs = net.cifar_decoder(
+                net.prototype_feature_vectors.reshape(prototype_num, class_num, f_width, f_height))\
+                .cpu().numpy()
             n_cols = 5
             n_rows = prototype_num // n_cols + 1 if prototype_num % n_cols != 0 else prototype_num // n_cols
             g, b = plt.subplots(n_rows, n_cols, figsize=(n_cols, n_rows), squeeze=False)
@@ -136,7 +141,8 @@ for epoch in range(num_epochs):
             examples_to_show = 10
             examples = [train_dataset[i][0] for i in range(examples_to_show)]
             examples = torch.cat(examples).reshape(len(examples), *examples[0].shape).to(device)
-            encode_decode = net.decoder(net.encoder(examples))
+            # encode_decode = net.decoder(net.encoder(examples))
+            encode_decode = net.cifar_decoder(net.cifar_encoder(examples))
             f, a = plt.subplots(2, examples_to_show, figsize=(examples_to_show, 2), squeeze=False)
             for i in range(examples_to_show):
                 a[0][i].imshow(
