@@ -24,8 +24,7 @@ class ProtoNet(nn.Module):
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(class_num, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(32, 32, kernel_size=3, stride=2, padding=1),  # if dataset is mnist
-            # nn.ConvTranspose2d(32, 32, kernel_size=3, stride=2, padding=1, output_padding=1),  # if dataset is cifar10
+            nn.ConvTranspose2d(32, 32, kernel_size=3, stride=2, padding=1),
             nn.ReLU(inplace=True),
             nn.ConvTranspose2d(32, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.ReLU(inplace=True),
