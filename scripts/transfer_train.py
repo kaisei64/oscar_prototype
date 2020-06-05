@@ -30,10 +30,11 @@ save_step = 50
 sigma = 4
 alpha = 20
 
-for param in transfer_net.parameters():
-    param.requires_grad = False
-for dense in transfer_net.classifier:
-    dense.weight.requires_grad = True
+# for param in transfer_net.parameters():
+#     param.requires_grad = False
+# transfer_net.prototype_feature_vectors.requires_grad = True
+# for dense in transfer_net.classifier:
+#     dense.weight.requires_grad = True
 for epoch in range(num_epochs):
     # train
     transfer_net.train()
