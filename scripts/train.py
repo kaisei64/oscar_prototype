@@ -118,8 +118,8 @@ for epoch in range(num_epochs):
 
             f_width = int(math.sqrt(len(net.prototype_feature_vectors[1]) / class_num))
             f_height = int(math.sqrt(len(net.prototype_feature_vectors[1]) / class_num))
-            # prototype_imgs = net.decoder(
-            prototype_imgs = net.cifar_decoder(
+            prototype_imgs = net.decoder(
+            # prototype_imgs = net.cifar_decoder(
                 net.prototype_feature_vectors.reshape(prototype_num, class_num, f_width, f_height))\
                 .cpu().numpy()
             n_cols = 5
@@ -141,8 +141,8 @@ for epoch in range(num_epochs):
             examples_to_show = 10
             examples = [train_dataset[i][0] for i in range(examples_to_show)]
             examples = torch.cat(examples).reshape(len(examples), *examples[0].shape).to(device)
-            # encode_decode = net.decoder(net.encoder(examples))
-            encode_decode = net.cifar_decoder(net.cifar_encoder(examples))
+            encode_decode = net.decoder(net.encoder(examples))
+            # encode_decode = net.cifar_decoder(net.cifar_encoder(examples))
             f, a = plt.subplots(2, examples_to_show, figsize=(examples_to_show, 2), squeeze=False)
             for i in range(examples_to_show):
                 a[0][i].imshow(

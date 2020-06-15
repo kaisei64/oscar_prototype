@@ -3,7 +3,7 @@ from dataset import *
 from util_func import list_of_distances
 
 class_num = 10
-prototype_num = 15
+prototype_num = 2
 in_channel_num = 1
 
 
@@ -51,17 +51,17 @@ class ProtoNet(nn.Module):
             nn.Sigmoid(),
         )
         self.prototype_feature_vectors = nn.Parameter(
-            # torch.nn.init.uniform_(torch.empty(prototype_num, 2 * 2 * class_num)))
-            torch.nn.init.uniform_(torch.empty(prototype_num, 16 * 16 * class_num)))
+            torch.nn.init.uniform_(torch.empty(prototype_num, 2 * 2 * class_num)))
+            # torch.nn.init.uniform_(torch.empty(prototype_num, 16 * 16 * class_num)))
         self.classifier = nn.Sequential(
             nn.Linear(prototype_num, class_num, bias=False)
         )
 
     def forward(self, x):
-        # feature_vectors = self.encoder(x)
-        feature_vectors = self.cifar_encoder(x)
-        # ae_output = self.decoder(feature_vectors)
-        ae_output = self.cifar_decoder(feature_vectors)
+        feature_vectors = self.encoder(x)
+        # feature_vectors = self.cifar_encoder(x)
+        ae_output = self.decoder(feature_vectors)
+        # ae_output = self.cifar_decoder(feature_vectors)
         feature_vectors = feature_vectors.reshape(batch_size, -1)
         prototype_distances = list_of_distances(feature_vectors, self.prototype_feature_vectors)
         feature_vector_distances = list_of_distances(self.prototype_feature_vectors, feature_vectors)

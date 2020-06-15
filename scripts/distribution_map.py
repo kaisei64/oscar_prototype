@@ -10,8 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
-prototype = "4"
-# train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_500.pkl')
+prototype = "2"
 train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
 # train_net = parameter_use(f'./result/pkl/prototype_{prototype}_sub/train_model_epoch500_{prototype}.pkl')
 

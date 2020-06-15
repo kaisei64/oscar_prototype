@@ -21,15 +21,15 @@ transform_test = transforms.Compose([
     # transforms.Normalize((0.5,), (0.5,))  # cifar10
 ])
 
-# train_val_dataset = torchvision.datasets.MNIST(root='./data/',
-train_val_dataset = torchvision.datasets.FashionMNIST(root='./data/',
+train_val_dataset = torchvision.datasets.MNIST(root='./data/',
+# train_val_dataset = torchvision.datasets.FashionMNIST(root='./data/',
 # train_val_dataset = torchvision.datasets.CIFAR10(root='./data/',
                                                  train=True,
                                                  transform=transform_train,
                                                  download=True)
 train_dataset, val_dataset = split_train_val(train_val_dataset, 0.8)
-# test_dataset = torchvision.datasets.MNIST(root='./data/',
-test_dataset = torchvision.datasets.FashionMNIST(root='./data/',
+test_dataset = torchvision.datasets.MNIST(root='./data/',
+# test_dataset = torchvision.datasets.FashionMNIST(root='./data/',
 # test_dataset = torchvision.datasets.CIFAR10(root='./data/',
                                             train=False,
                                             transform=transform_test,

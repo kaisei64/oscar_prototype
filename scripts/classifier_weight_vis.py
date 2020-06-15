@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-prototype = "15"
+prototype = "2"
 train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
 classifier_weight = train_net.classifier[0].weight.cpu().detach().numpy().T
 
