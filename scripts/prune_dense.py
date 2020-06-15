@@ -20,16 +20,15 @@ train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch
 optimizer = optim.Adam(train_net.parameters(), lr=0.002)
 weight_matrix = train_net.classifier[0].weight
 de_mask = torch.ones(weight_matrix.shape)
+# pruning from the large positive value
+# prune_index_list = np.argsort(weight_matrix.detach().cpu().numpy(), axis=0)[::-1]
+# pruning from the small absolute value
+prune_index_list = np.argsort(abs(weight_matrix.detach().cpu().numpy()), axis=0)
 
 # weight_pruning
 for count in range(model.class_num-1):
     print(f'\nweight pruning: {count+1}')
-    # pruning from the large positive value
-    prune_index_list = weight_matrix.detach().cpu().numpy().argmax(axis=0)
-    # pruning from the small absolute value
-    # prune_index_list = abs(weight_matrix.detach().cpu().numpy()).argmin(axis=0)
-    print(prune_index_list)
-    for i, index in enumerate(prune_index_list):
+    for i, index in enumerate(prune_index_list[count]):
         de_mask[index, i] = 0
     with torch.no_grad():
         weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
