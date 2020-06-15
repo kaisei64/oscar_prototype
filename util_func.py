@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import cloudpickle
 import pandas as pd
+import matplotlib.pyplot as plt
 from scipy.ndimage.interpolation import map_coordinates
 from scipy.ndimage.filters import gaussian_filter
 
@@ -81,3 +82,22 @@ def parameter_save(path, param):
 def parameter_use(path):
     with open(path, 'rb') as f:
         return cloudpickle.load(f)
+
+
+def loss_vis(path, epoch, history):
+    plt.figure()
+    plt.plot(range(1, epoch + 1), history['train_loss'], label='train_loss')
+    plt.plot(range(1, epoch + 1), history['train_loss'], label='train_loss')
+    plt.xlabel('epoch')
+    plt.legend()
+    plt.show()
+    # plt.savefig(path)
+
+
+def testacc_vis(path, epoch, history):
+    plt.figure()
+    plt.plot(range(1, epoch + 1), history['test_acc'])
+    plt.title('val accuracy')
+    plt.xlabel('epoch')
+    plt.show()
+    # plt.savefig(path)
