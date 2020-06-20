@@ -96,8 +96,9 @@ def loss_vis(path, epoch, history):
 
 def testacc_vis(path, epoch, history):
     plt.figure()
+    history['test_acc'] = [float(val) for val in history['test_acc']]
     plt.plot(range(1, epoch + 1), history['test_acc'])
-    plt.title('val accuracy')
+    plt.title('test accuracy')
     plt.xlabel('epoch')
-    plt.show()
-    # plt.savefig(path)
+    # plt.show()
+    plt.savefig(path)

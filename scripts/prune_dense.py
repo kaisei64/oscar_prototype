@@ -3,7 +3,7 @@ import sys
 pardir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(pardir)
 from densemask_generator import DenseMaskGenerator
-from util_func import parameter_use, testacc_vis, result_save, batch_elastic_transform, list_of_norms, result_save
+from util_func import parameter_use, testacc_vis, result_save, batch_elastic_transform, list_of_norms, result_save, parameter_save
 from loss import *
 from dataset import *
 from model import class_num, in_channel_num
@@ -16,7 +16,7 @@ import math
 learning_history = {'epoch': [], 'train_acc': [], 'train_total_loss': [], 'train_class_loss': [], 'train_ae_loss': [],
                     'train_error_1_loss': [], 'train_error_2_loss': [], 'test_acc': []}
 
-prototype = "5"
+prototype = "10"
 train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
 optimizer = optim.Adam(train_net.parameters(), lr=0.002)
 # training parameters
@@ -55,10 +55,10 @@ for count in range(class_num-1):
 
     # weight_pruning_finetune--------------------------------------------
     for param in train_net.parameters():
-        param.requires_grad = False
+        param.requires_grad = True
     # train_net.prototype_feature_vectors.requires_grad = True
-    for dense in train_net.classifier:
-        dense.weight.requires_grad = True
+    # for dense in train_net.classifier:
+    #     dense.weight.requires_grad = True
     for epoch in range(num_epochs):
         # train
         train_net.train()
@@ -101,19 +101,22 @@ for count in range(class_num-1):
         print(f'test_acc: {avg_test_acc:.4f}')
 
         # save the learning history
-        learning_history['epoch'].append(epoch + 1)
-        learning_history['train_acc'].append(f'{avg_train_acc:.4f}')
-        learning_history['train_total_loss'].append(f'{avg_train_loss:.4f}')
-        learning_history['train_class_loss'].append(f'{avg_train_class_error:.4e}')
-        learning_history['train_ae_loss'].append(f'{avg_train_ae_error:.4e}')
-        learning_history['train_error_1_loss'].append(f'{avg_train_error_1:.4e}')
-        learning_history['train_error_2_loss'].append(f'{avg_train_error_2:.4e}')
-        learning_history['test_acc'].append(f'{avg_test_acc:.4f}')
-        # result_save(f'./result/csv/train_history_{prototype}.csv', learning_history)
+        if epoch == num_epochs-1:
+            learning_history['epoch'].append(epoch + 1)
+            learning_history['train_acc'].append(f'{avg_train_acc:.4f}')
+            learning_history['train_total_loss'].append(f'{avg_train_loss:.4f}')
+            learning_history['train_class_loss'].append(f'{avg_train_class_error:.4e}')
+            learning_history['train_ae_loss'].append(f'{avg_train_ae_error:.4e}')
+            learning_history['train_error_1_loss'].append(f'{avg_train_error_1:.4e}')
+            learning_history['train_error_2_loss'].append(f'{avg_train_error_2:.4e}')
+            learning_history['test_acc'].append(f'{avg_test_acc:.4f}')
+            result_save(f'./result/csv/prune_train_history_{prototype}.csv', learning_history)
 
-        # save model, prototype and ae_out
-        if epoch % save_step == 0 or epoch == num_epochs - 1:
+        # prototype
+        if epoch == num_epochs - 1:
             with torch.no_grad():
+                parameter_save(f'./result/pkl/prune_train_model_epoch{count + 1}_{prototype}.pkl', train_net)
+
                 f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
                 f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
                 prototype_imgs = train_net.decoder(
@@ -131,9 +134,9 @@ for count in range(class_num-1):
                                 cmap='gray',
                                 interpolation='none')
                             b[i][j].axis('off')
-                # plt.savefig(f'./result/png/prototype_epoch{epoch + 1}_{prototype}.png',
-                #             transparent=True, bbox_inches='tight', pad_inches=0)
-                plt.show()
+                plt.savefig(f'./result/png/prune_prototype_epoch{count + 1}_{prototype}.png',
+                            transparent=True, bbox_inches='tight', pad_inches=0)
+                # plt.show()
                 plt.close()
 
 testacc_vis(f'./result/png/prototype_{prototype}/testacc_afterprune.png', class_num-1, learning_history)
