@@ -9,10 +9,10 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+from sklearn import manifold
 
 prototype = "2"
-train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
-# train_net = parameter_use(f'./result/pkl/prototype_{prototype}_sub/train_model_epoch500_{prototype}.pkl')
+train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch9_{prototype}.pkl')
 
 examples_to_show = 10000
 examples = [train_dataset[i][0] for i in range(examples_to_show)]
@@ -28,9 +28,13 @@ prototype_feature_vec = train_net.prototype_feature_vectors.reshape(-1, model.cl
                         .cpu().detach().numpy()
 con_vec = np.concatenate([feature_vec, prototype_feature_vec])
 
-pca = PCA(n_components=2)
-pca.fit(con_vec)
-data_pca = pca.transform(con_vec)
+# pca---------------------------------------------------
+# pca = PCA(n_components=2)
+# pca.fit(con_vec)
+# data_pca = pca.transform(con_vec)
+# t-sne-------------------------------------------------
+pca = manifold.TSNE(n_components=2, init='pca', random_state=0)
+data_pca = pca.fit_transform(con_vec)
 fig = plt.figure(figsize=(15, 12), facecolor='w')
 plt.rcParams["font.size"] = 15
 prototype_name = [chr(ord('A') + i) for i in range(int(prototype))]
@@ -54,6 +58,5 @@ legend_order = [color_set.index(val) for val in label_keep]
 handles_order = [legend_order.index(val) for val in range(model.class_num)]
 sorted_handles = [handles[idx] for idx in handles_order]
 fig.legend(loc='upper right', fontsize=25, handles=sorted_handles)
-plt.savefig(f'./result/png/prototype_{prototype}/distribution_map.png')
-# plt.savefig(f'./result/png/prototype_{prototype}_sub/distribution_map.png')
-# plt.show()
+# plt.savefig(f'./result/png/prototype_{prototype}/prune9_distribution_map.png')
+plt.show()
