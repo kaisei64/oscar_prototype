@@ -11,7 +11,9 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn import manifold
 
-prototype = "2"
+prototype = "10"
+# train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
+# train_net = parameter_use(f'./result/pkl/3NN_prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
 train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch9_{prototype}.pkl')
 
 examples_to_show = 10000
@@ -24,8 +26,9 @@ examples_labels = np.where(examples_labels == "0", "b", examples_labels)
 for i in range(model.class_num):
     examples_labels = np.where(examples_labels == str(i), color_set[i], examples_labels)
 feature_vec = train_net.encoder(examples).reshape(-1, model.class_num*2*2).cpu().detach().numpy()
-prototype_feature_vec = train_net.prototype_feature_vectors.reshape(-1, model.class_num*2*2)\
-                        .cpu().detach().numpy()
+# feature_vec = train_net.encoder(examples).reshape(-1, model.class_num).cpu().detach().numpy()
+prototype_feature_vec = train_net.prototype_feature_vectors.reshape(-1, model.class_num*2*2).cpu().detach().numpy()
+# prototype_feature_vec = train_net.prototype_feature_vectors.reshape(-1, model.class_num).cpu().detach().numpy()
 con_vec = np.concatenate([feature_vec, prototype_feature_vec])
 
 # pca---------------------------------------------------
@@ -58,5 +61,7 @@ legend_order = [color_set.index(val) for val in label_keep]
 handles_order = [legend_order.index(val) for val in range(model.class_num)]
 sorted_handles = [handles[idx] for idx in handles_order]
 fig.legend(loc='upper right', fontsize=25, handles=sorted_handles)
-# plt.savefig(f'./result/png/prototype_{prototype}/prune9_distribution_map.png')
-plt.show()
+# plt.savefig(f'./result/png/prototype_{prototype}/distribution_map.png')
+# plt.savefig(f'./result/png/3NN_prototype_{prototype}/distribution_map.png')
+plt.savefig(f'./result/png/prototype_{prototype}/prune_distribution_map.png')
+# plt.show()

@@ -20,6 +20,7 @@ learning_history = {'epoch': [], 'train_acc': [], 'train_total_loss': [], 'train
 
 transfer_net = parameter_use(f'./result/pkl/prototype_{prototype_num}/train_model_epoch500_{prototype_num}.pkl').to(device)
 optimizer = optim.Adam(transfer_net.parameters(), lr=0.002)
+conv_list = [module for module in transfer_net.modules() if isinstance(module, nn.Conv2d)]
 
 # training parameters
 num_epochs = 500
@@ -30,11 +31,14 @@ save_step = 50
 sigma = 4
 alpha = 20
 
-# for param in transfer_net.parameters():
-#     param.requires_grad = False
-# transfer_net.prototype_feature_vectors.requires_grad = True
-# for dense in transfer_net.classifier:
-#     dense.weight.requires_grad = True
+for param in transfer_net.parameters():
+    param.requires_grad = False
+for i, conv in enumerate(conv_list):
+    if i == 0:
+        conv.weight.requires_grad = True
+transfer_net.prototype_feature_vectors.requires_grad = True
+for dense in transfer_net.classifier:
+    dense.weight.requires_grad = True
 for epoch in range(num_epochs):
     # train
     transfer_net.train()

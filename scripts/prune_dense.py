@@ -29,11 +29,11 @@ alpha = 20
 weight_matrix = train_net.classifier[0].weight
 de_mask = torch.ones(weight_matrix.shape)
 # pruning from the large value--------------------------------------------------
-prune_index_list = np.argsort(weight_matrix.detach().cpu().numpy(), axis=0)[::-1]
+# prune_index_list = np.argsort(weight_matrix.detach().cpu().numpy(), axis=0)[::-1]
 # pruning from the small value--------------------------------------------------
 # prune_index_list = np.argsort(weight_matrix.detach().cpu().numpy(), axis=0)
 # pruning from the large absolute value-----------------------------------------
-# prune_index_list = np.argsort(abs(weight_matrix.detach().cpu().numpy()), axis=0)[::-1]
+prune_index_list = np.argsort(abs(weight_matrix.detach().cpu().numpy()), axis=0)[::-1]
 # pruning from the small absolute value-----------------------------------------
 # prune_index_list = np.argsort(abs(weight_matrix.detach().cpu().numpy()), axis=0)
 
@@ -55,10 +55,10 @@ for count in range(class_num-1):
 
     # weight_pruning_finetune--------------------------------------------
     for param in train_net.parameters():
-        param.requires_grad = True
+        param.requires_grad = False
     # train_net.prototype_feature_vectors.requires_grad = True
-    # for dense in train_net.classifier:
-    #     dense.weight.requires_grad = True
+    for dense in train_net.classifier:
+        dense.weight.requires_grad = True
     for epoch in range(num_epochs):
         # train
         train_net.train()
@@ -117,26 +117,26 @@ for count in range(class_num-1):
             with torch.no_grad():
                 parameter_save(f'./result/pkl/prune_train_model_epoch{count + 1}_{prototype}.pkl', train_net)
 
-                f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
-                f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
-                prototype_imgs = train_net.decoder(
-                    # prototype_imgs = net.cifar_decoder(
-                    train_net.prototype_feature_vectors.reshape(int(prototype), class_num, f_width, f_height)).cpu().numpy()
-                n_cols = 5
-                n_rows = int(prototype) // n_cols + 1 if int(prototype) % n_cols != 0 else int(prototype) // n_cols
-                g, b = plt.subplots(n_rows, n_cols, figsize=(n_cols, n_rows), squeeze=False)
-                for i in range(n_rows):
-                    for j in range(n_cols):
-                        if i * n_cols + j < int(prototype):
-                            b[i][j].imshow(
-                                prototype_imgs[i * n_cols + j].reshape(in_height, in_width),
-                                # prototype_imgs[i * n_cols + j].reshape(in_height, in_width, in_channel_num),
-                                cmap='gray',
-                                interpolation='none')
-                            b[i][j].axis('off')
-                plt.savefig(f'./result/png/prune_prototype_epoch{count + 1}_{prototype}.png',
-                            transparent=True, bbox_inches='tight', pad_inches=0)
-                # plt.show()
-                plt.close()
+                # f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+                # f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+                # prototype_imgs = train_net.decoder(
+                #     # prototype_imgs = net.cifar_decoder(
+                #     train_net.prototype_feature_vectors.reshape(int(prototype), class_num, f_width, f_height)).cpu().numpy()
+                # n_cols = 5
+                # n_rows = int(prototype) // n_cols + 1 if int(prototype) % n_cols != 0 else int(prototype) // n_cols
+                # g, b = plt.subplots(n_rows, n_cols, figsize=(n_cols, n_rows), squeeze=False)
+                # for i in range(n_rows):
+                #     for j in range(n_cols):
+                #         if i * n_cols + j < int(prototype):
+                #             b[i][j].imshow(
+                #                 prototype_imgs[i * n_cols + j].reshape(in_height, in_width),
+                #                 # prototype_imgs[i * n_cols + j].reshape(in_height, in_width, in_channel_num),
+                #                 cmap='gray',
+                #                 interpolation='none')
+                #             b[i][j].axis('off')
+                # plt.savefig(f'./result/png/prune_prototype_epoch{count + 1}_{prototype}.png',
+                #             transparent=True, bbox_inches='tight', pad_inches=0)
+                # # plt.show()
+                # plt.close()
 
 testacc_vis(f'./result/png/prototype_{prototype}/testacc_afterprune.png', class_num-1, learning_history)

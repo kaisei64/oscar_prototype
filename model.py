@@ -71,13 +71,13 @@ class ProtoNet(nn.Module):
         )
 
     def forward(self, x):
-        # feature_vectors = self.encoder(x)
+        feature_vectors = self.encoder(x)
         # feature_vectors = self.cifar_encoder(x)
-        x = x.view(-1, in_width * in_height)
-        feature_vectors = self.simple_encoder(x)
-        # ae_output = self.decoder(feature_vectors)
+        # x = x.view(-1, in_width * in_height)
+        # feature_vectors = self.simple_encoder(x)
+        ae_output = self.decoder(feature_vectors)
         # ae_output = self.cifar_decoder(feature_vectors)
-        ae_output = self.simple_decoder(feature_vectors)
+        # ae_output = self.simple_decoder(feature_vectors)
         feature_vectors = feature_vectors.reshape(batch_size, -1)
         prototype_distances = list_of_distances(feature_vectors, self.prototype_feature_vectors)
         feature_vector_distances = list_of_distances(self.prototype_feature_vectors, feature_vectors)
