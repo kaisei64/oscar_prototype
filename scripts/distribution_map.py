@@ -14,7 +14,11 @@ from sklearn import manifold
 prototype = "10"
 # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
 # train_net = parameter_use(f'./result/pkl/3NN_prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
-train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch9_{prototype}.pkl')
+# train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch9_{prototype}.pkl')
+# train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_conv1_nofinetune_from_abs_small/'
+#                           f'conv_prune_nofinetune_train_model_prune9_{prototype}.pkl')
+train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_conv1_finetune_from_abs_small/'
+                          f'conv_prune_finetune_train_model_prune9_{prototype}.pkl')
 
 examples_to_show = 10000
 examples = [train_dataset[i][0] for i in range(examples_to_show)]
@@ -38,6 +42,7 @@ con_vec = np.concatenate([feature_vec, prototype_feature_vec])
 # t-sne-------------------------------------------------
 pca = manifold.TSNE(n_components=2, init='pca', random_state=0)
 data_pca = pca.fit_transform(con_vec)
+
 fig = plt.figure(figsize=(15, 12), facecolor='w')
 plt.rcParams["font.size"] = 15
 prototype_name = [chr(ord('A') + i) for i in range(int(prototype))]
@@ -63,5 +68,5 @@ sorted_handles = [handles[idx] for idx in handles_order]
 fig.legend(loc='upper right', fontsize=25, handles=sorted_handles)
 # plt.savefig(f'./result/png/prototype_{prototype}/distribution_map.png')
 # plt.savefig(f'./result/png/3NN_prototype_{prototype}/distribution_map.png')
-plt.savefig(f'./result/png/prototype_{prototype}/prune_distribution_map.png')
-# plt.show()
+# plt.savefig(f'./result/png/prototype_{prototype}/prune_distribution_map.png')
+plt.show()
