@@ -109,8 +109,6 @@ for count in range(1, inv_prune_ratio):
     # train_net.prototype_feature_vectors.requires_grad = True
     for conv in conv_list:
         conv.weight.requires_grad = True
-    for param in train_net.parameters():
-        print(param.requires_grad)
     for epoch in range(num_epochs):
         # train
         train_net.train()
