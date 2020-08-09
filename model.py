@@ -63,8 +63,8 @@ class ProtoNet(nn.Module):
             nn.Sigmoid(),
         )
         self.prototype_feature_vectors = nn.Parameter(
-            torch.nn.init.uniform_(torch.empty(prototype_num, class_num)))  # simple_ae
-            # torch.nn.init.uniform_(torch.empty(prototype_num, 2 * 2 * class_num)))
+            # torch.nn.init.uniform_(torch.empty(prototype_num, class_num)))  # simple_ae
+            torch.nn.init.uniform_(torch.empty(prototype_num, 2 * 2 * class_num)))
             # torch.nn.init.uniform_(torch.empty(prototype_num, 16 * 16 * class_num)))  # cifar10
         self.classifier = nn.Sequential(
             nn.Linear(prototype_num, class_num, bias=False)

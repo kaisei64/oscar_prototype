@@ -15,10 +15,8 @@ prototype = "10"
 # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
 # train_net = parameter_use(f'./result/pkl/3NN_prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
 # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch9_{prototype}.pkl')
-# train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_conv1_nofinetune_from_abs_small/'
-#                           f'conv_prune_nofinetune_train_model_prune9_{prototype}.pkl')
-train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_conv1_finetune_from_abs_small/'
-                          f'conv_prune_finetune_train_model_prune9_{prototype}.pkl')
+train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/prune_dense_proto_finetune_from_abs_small/'
+                          f'prune_train_model_epoch8_{prototype}.pkl')
 
 examples_to_show = 10000
 examples = [train_dataset[i][0] for i in range(examples_to_show)]
@@ -65,7 +63,7 @@ for i in range(examples_to_show + int(prototype)):
 legend_order = [color_set.index(val) for val in label_keep]
 handles_order = [legend_order.index(val) for val in range(model.class_num)]
 sorted_handles = [handles[idx] for idx in handles_order]
-fig.legend(loc='upper right', fontsize=25, handles=sorted_handles)
+fig.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=1, fontsize=25, handles=sorted_handles)
 # plt.savefig(f'./result/png/prototype_{prototype}/distribution_map.png')
 # plt.savefig(f'./result/png/3NN_prototype_{prototype}/distribution_map.png')
 # plt.savefig(f'./result/png/prototype_{prototype}/prune_distribution_map.png')

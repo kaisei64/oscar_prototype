@@ -102,3 +102,14 @@ def testacc_vis(path, epoch, history):
     plt.xlabel('epoch')
     # plt.show()
     plt.savefig(path)
+
+
+def pruningtestacc_vis(path, epoch, history):
+    plt.figure(figsize=(6, 3.5), tight_layout=True)
+    history['test_acc'] = [float(val) for val in history['test_acc']]
+    plt.plot(range(0, epoch), history['test_acc'])
+    plt.xlabel('Number of weights removed', fontsize=12)
+    plt.ylabel('Accuracy [%]', fontsize=12)
+    plt.tick_params(labelsize=12)
+    # plt.show()
+    plt.savefig(path)

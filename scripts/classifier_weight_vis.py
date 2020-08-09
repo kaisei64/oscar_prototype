@@ -10,7 +10,9 @@ import numpy as np
 prototype = "10"
 # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch500_{prototype}.pkl')
 # train_net = parameter_use(f'./result/pkl/3NN_prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
-train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch1_{prototype}.pkl')
+# train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch1_{prototype}.pkl')
+train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/prune_not_finetune_from_abs_small/'
+                          f'prune_train_model_epoch9_{prototype}.pkl')
 
 classifier_weight = train_net.classifier[0].weight.cpu().detach().numpy().T
 
@@ -35,5 +37,5 @@ tbl = ax.table(cellText=df.values.round(3),
 tbl.set_fontsize(30)
 # plt.savefig(f'./result/png/prototype_{prototype}/classifier_weight.png')
 # plt.savefig(f'./result/png/3NN_prototype_{prototype}/classifier_weight.png')
-plt.savefig(f'./result/png/prototype_{prototype}/prune1_classifier_weight.png')
-# plt.show()
+# plt.savefig(f'./result/png/prototype_{prototype}/prune1_classifier_weight.png')
+plt.show()
