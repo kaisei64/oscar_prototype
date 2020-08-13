@@ -3,6 +3,7 @@ import numpy as np
 import cloudpickle
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 from scipy.ndimage.interpolation import map_coordinates
 from scipy.ndimage.filters import gaussian_filter
 
@@ -113,3 +114,10 @@ def pruningtestacc_vis(path, epoch, history):
     plt.tick_params(labelsize=12)
     # plt.show()
     plt.savefig(path)
+
+
+def weight_distribution_vis(path, param):
+    sns.set_style("darkgrid")
+    sns_plot = sns.distplot(param, rug=True)
+    sns_plot.figure.savefig(path)
+    sns_plot.figure.clear()
