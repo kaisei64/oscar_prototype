@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.ndimage.interpolation import map_coordinates
 from scipy.ndimage.filters import gaussian_filter
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
+import itertools
 
 
 def split_train_val(train_val_dataset, train_rate):
@@ -121,3 +124,50 @@ def weight_distribution_vis(path, param):
     sns_plot = sns.distplot(param, rug=True)
     sns_plot.figure.savefig(path)
     sns_plot.figure.clear()
+
+
+def plot_confusion_matrix(cm, classes, output_file,
+                          normalize=False,
+                          title='Confusion matrix',
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.savefig(output_file)
+
+
+def make_confusion_matrix(label, pred):
+    title = f"overall accuracy:{str(accuracy_score(label.numpy().tolist(), pred.numpy().tolist()))}\n"
+    plt.figure()
+    plt.text(0.1, 0.03, str(classification_report(label.numpy().tolist(), pred.numpy().tolist())), size=12)
+    plt.tick_params(labelbottom=False, labelleft=False, labelright=False, labeltop=False)
+    plt.tick_params(bottom=False, left=False, right=False, top=False)
+    plt.savefig("./result/png/classification_report.png")
+    cnf_matrix = confusion_matrix(label.numpy().tolist(), pred.numpy().tolist(), labels=[i for i in range(10)])
+    plt.figure()
+    plot_confusion_matrix(cnf_matrix, classes=[i for i in range(10)],
+                          output_file="./result/png/confusion_matrix.png", title=title)
