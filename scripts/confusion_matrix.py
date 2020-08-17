@@ -15,7 +15,7 @@ sigma = 4
 alpha = 20
 
 for k in range(1, 11):
-    train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/not_abs/prune_all_finetune_from_small/'
+    train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/abs/prune_proto_finetune_from_abs_small/'
                               f'prune_train_model_epoch{k}_{prototype}.pkl')
     output_hold = torch.empty(0)
     label_hold = torch.empty(0)
@@ -34,6 +34,6 @@ for k in range(1, 11):
         avg_test_acc = test_acc / len(test_loader.dataset)
         print(f'test_acc: {avg_test_acc:.4f}')
 
-    make_confusion_matrix(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune{k}_confusion_matrix.png',
-                          f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune{k}_classification_report.png',
+    make_confusion_matrix(f'./result/png/prototype_{prototype}/prune_finetune/abs/prune{k}_confusion_matrix.png',
+                          f'./result/png/prototype_{prototype}/prune_finetune/abs/prune{k}_classification_report.png',
                           label_hold, output_hold)
