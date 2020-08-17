@@ -160,7 +160,7 @@ def plot_confusion_matrix(cm, classes, output_file,
     plt.savefig(output_file)
 
 
-def make_confusion_matrix(label, pred):
+def make_confusion_matrix(path, label, pred):
     title = f"overall accuracy:{str(accuracy_score(label.numpy().tolist(), pred.numpy().tolist()))}\n"
     plt.figure()
     plt.text(0.1, 0.03, str(classification_report(label.numpy().tolist(), pred.numpy().tolist())), size=12)
@@ -170,4 +170,4 @@ def make_confusion_matrix(label, pred):
     cnf_matrix = confusion_matrix(label.numpy().tolist(), pred.numpy().tolist(), labels=[i for i in range(10)])
     plt.figure()
     plot_confusion_matrix(cnf_matrix, classes=[i for i in range(10)],
-                          output_file="./result/png/confusion_matrix.png", title=title)
+                          output_file=path, title=title)

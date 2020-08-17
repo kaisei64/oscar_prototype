@@ -18,7 +18,7 @@ for k in range(2, 11):
     # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch9_{prototype}.pkl')
     # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/prune_dense_proto_finetune_from_abs_small/'
     #                           f'prune_train_model_epoch8_{prototype}.pkl')
-    train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/not_abs/prune_all_finetune_from_small/'
+    train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/not_abs/prune_conv_proto_finetune_from_small/'
                               f'prune_train_model_epoch{k}_{prototype}.pkl')
 
     examples_to_show = 10000

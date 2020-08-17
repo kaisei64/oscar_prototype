@@ -110,8 +110,8 @@ for count in range(class_num):
     for param in train_net.parameters():
         param.requires_grad = True
     # train_net.prototype_feature_vectors.requires_grad = True
-    # for dense in train_net.classifier:
-    #     dense.weight.requires_grad = False
+    for dense in train_net.classifier:
+        dense.weight.requires_grad = False
     for epoch in range(num_epochs):
         # train
         train_net.train()
