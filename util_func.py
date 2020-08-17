@@ -158,7 +158,7 @@ def plot_confusion_matrix(cm, classes, output_file,
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-    plt.savefig(output_file)
+    plt.savefig(output_file, bbox_inches="tight")
 
 
 def make_confusion_matrix(path1, path2, label, pred):
