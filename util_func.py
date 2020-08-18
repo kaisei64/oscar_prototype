@@ -122,6 +122,12 @@ def pruningtestacc_vis(path, epoch, history):
     plt.savefig(path)
 
 
+def conv_vis(path, param, fl_num, ch_num=0):
+    sns_map = sns.heatmap(param[fl_num, ch_num, :, :], vmin=0.0, vmax=1.0)
+    sns_map.figure.savefig(path)
+    sns_map.figure.clear()
+
+
 def weight_distribution_vis(path, param):
     sns.set_style("darkgrid")
     sns_plot = sns.distplot(param, rug=True)

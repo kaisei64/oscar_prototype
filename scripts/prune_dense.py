@@ -3,7 +3,7 @@ import sys
 pardir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(pardir)
 from densemask_generator import DenseMaskGenerator
-from util_func import parameter_use, pruningtestacc_vis, result_save, batch_elastic_transform, list_of_norms, result_save, parameter_save
+from util_func import parameter_use, pruningtestacc_vis, result_save, batch_elastic_transform, list_of_norms, result_save, parameter_save, conv_vis
 from loss import *
 from dataset import *
 from model import class_num, in_channel_num
@@ -110,8 +110,8 @@ for count in range(class_num):
     for param in train_net.parameters():
         param.requires_grad = True
     # train_net.prototype_feature_vectors.requires_grad = True
-    for dense in train_net.classifier:
-        dense.weight.requires_grad = False
+    # for dense in train_net.classifier:
+    #     dense.weight.requires_grad = False
     for epoch in range(num_epochs):
         # train
         train_net.train()
@@ -135,6 +135,15 @@ for count in range(class_num):
             train_loss += loss.item()
             train_acc += (outputs.max(1)[1] == labels).sum().item()
             loss.backward()
+            # visualize grad
+            # if count == 9 and epoch == 4 and i == 0:
+            #     f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+            #     f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+            #     prototype_grad = train_net.decoder(
+            #         train_net.prototype_feature_vectors.grad.reshape(int(prototype), class_num, f_width, f_height)).cpu().detach().numpy()
+            #     for k in range(int(prototype)):
+            #         conv_vis(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/proto{k+1}_grad_heatmap.png'
+            #                  , prototype_grad, k)
             optimizer.step()
             with torch.no_grad():
                 weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
