@@ -112,6 +112,7 @@ for count in range(class_num):
     # train_net.prototype_feature_vectors.requires_grad = True
     # for dense in train_net.classifier:
     #     dense.weight.requires_grad = False
+    tmp_grad = torch.zeros(train_net.prototype_feature_vectors.shape).clone().detach().to(device)
     for epoch in range(num_epochs):
         # train
         train_net.train()
@@ -135,15 +136,7 @@ for count in range(class_num):
             train_loss += loss.item()
             train_acc += (outputs.max(1)[1] == labels).sum().item()
             loss.backward()
-            # visualize grad
-            # if count == 9 and epoch == 4 and i == 0:
-            #     f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
-            #     f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
-            #     prototype_grad = train_net.decoder(
-            #         train_net.prototype_feature_vectors.grad.reshape(int(prototype), class_num, f_width, f_height)).cpu().detach().numpy()
-            #     for k in range(int(prototype)):
-            #         conv_vis(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/proto{k+1}_grad_heatmap.png'
-            #                  , prototype_grad, k)
+            # tmp_grad += train_net.prototype_feature_vectors.grad
             optimizer.step()
             with torch.no_grad():
                 weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
@@ -151,6 +144,15 @@ for count in range(class_num):
         avg_train_class_error, avg_train_ae_error = train_class_error / len(train_loader.dataset), train_ae_error / len(train_loader.dataset)
         avg_train_error_1, avg_train_error_2 = train_error_1 / len(train_loader.dataset), train_error_2 / len(train_loader.dataset)
         print(f'epoch [{epoch + 1}/{num_epochs}], train_loss: {avg_train_loss:.4f}, train_acc: {avg_train_acc:.4f}')
+        # visualize grad
+        # if epoch == num_epochs - 1:
+        #     f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+        #     f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+        #     prototype_grad = train_net.decoder(
+        #         tmp_grad.reshape(int(prototype), class_num, f_width, f_height)).cpu().detach().numpy()
+        #     for k in range(int(prototype)):
+        #         conv_vis(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune{count}_proto{k+1}_grad_heatmap.png'
+        #                  , prototype_grad, k)
 
         # test
         avg_test_acc, test_acc = 0, 0
