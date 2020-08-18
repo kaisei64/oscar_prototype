@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import cloudpickle
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.ndimage.interpolation import map_coordinates
@@ -113,8 +114,10 @@ def pruningtestacc_vis(path, epoch, history):
     history['test_acc'] = [float(val) for val in history['test_acc']]
     plt.plot(range(0, epoch), history['test_acc'])
     plt.xlabel('Number of weights removed', fontsize=12)
-    plt.ylabel('Accuracy [%]', fontsize=12)
+    plt.ylabel('Accuracy', fontsize=12)
     plt.tick_params(labelsize=12)
+    ylabels = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    plt.yticks(ylabels, ylabels)
     # plt.show()
     plt.savefig(path)
 
