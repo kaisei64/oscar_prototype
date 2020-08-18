@@ -3,6 +3,7 @@ import sys
 pardir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(pardir)
 from util_func import parameter_use, weight_distribution_vis
+import torch.nn as nn
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -43,9 +44,19 @@ tbl.set_fontsize(30)
 plt.savefig(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune1_classifier_weight.png')
 # plt.show()
 
-# weight distribution
+# classifier weight distribution
 # for i in range(1, 11):
 #     train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/not_abs/prune_proto_finetune_from_small/'
 #                               f'prune_train_model_epoch{i}_{prototype}.pkl')
 #     classifier_weight = train_net.classifier[0].weight.cpu().detach().numpy().flatten()
 #     weight_distribution_vis(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune{i}_classifier_weight_dis.png', classifier_weight)
+
+# conv weight distribution
+# for i in range(1, 11):
+#     train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/abs/prune_proto_finetune_from_abs_small/'
+#                               f'prune_train_model_epoch{i}_{prototype}.pkl')
+#     conv_list = [module for module in train_net.modules() if isinstance(module, nn.Conv2d)]
+#     for j, conv in enumerate(conv_list):
+#         conv_weight = conv.weight.cpu().detach().numpy().flatten()
+#         weight_distribution_vis(f'./result/png/prototype_{prototype}/prune_finetune/abs/prune{i}_'
+#                                 f'conv{j}_weight_dis.png', conv_weight)
