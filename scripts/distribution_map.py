@@ -16,12 +16,12 @@ for k in range(2, 11):
     # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
     # train_net = parameter_use(f'./result/pkl/3NN_prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
     # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch9_{prototype}.pkl')
-    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/prune_dense_proto_finetune_from_abs_small/'
-    #                           f'prune_train_model_epoch8_{prototype}.pkl')
-    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/not_abs/prune_conv_proto_finetune_from_small/'
+    train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/abs/prune_proto_finetune_from_abs_large/'
+                              f'prune_train_model_epoch{k}_{prototype}.pkl')
+    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/not_abs/prune_all_finetune_from_small_at_least_1weight/'
     #                           f'prune_train_model_epoch{k}_{prototype}.pkl')
-    train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/prune_finetune_once/prune_negative/'
-                              f'prune_train_model_epoch2_{prototype}.pkl')
+    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/prune_finetune_once/prune_negative/'
+    #                           f'prune_train_model_epoch2_{prototype}.pkl')
 
 
     examples_to_show = 10000
@@ -47,8 +47,9 @@ for k in range(2, 11):
     pca = manifold.TSNE(n_components=2, init='pca', random_state=0)
     data_pca = pca.fit_transform(con_vec)
 
-    fig = plt.figure(figsize=(15, 12), facecolor='w')
+    fig = plt.figure(figsize=(15, 12), facecolor='w', tight_layout=True)
     plt.rcParams["font.size"] = 15
+    # plt.tick_params(labelbottom=False, labelleft=False)
     prototype_name = [chr(ord('A') + i) for i in range(int(prototype))]
     j = 0
     handles, label_keep = [], []
@@ -57,6 +58,7 @@ for k in range(2, 11):
         if i < examples_to_show:
             line, = plt.plot(data_pca[i][0], data_pca[i][1], ms=5.0, zorder=2, marker="x",
                              color=examples_labels[i], label=examples_class_labels[i])
+            plt.tick_params(labelsize=38)
             if not(examples_labels[i] in label_keep):
                 label_keep.append(examples_labels[i])
                 handles.append(line)
@@ -66,13 +68,13 @@ for k in range(2, 11):
             # show prototype order
             plt.annotate(prototype_name[j], (data_pca[i][0], data_pca[i][1]), size=30)
             j += 1
-    legend_order = [color_set.index(val) for val in label_keep]
-    handles_order = [legend_order.index(val) for val in range(model.class_num)]
-    sorted_handles = [handles[idx] for idx in handles_order]
-    fig.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=1, fontsize=25, handles=sorted_handles)
+    # legend_order = [color_set.index(val) for val in label_keep]
+    # handles_order = [legend_order.index(val) for val in range(model.class_num)]
+    # sorted_handles = [handles[idx] for idx in handles_order]
+    # fig.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=1, fontsize=25, handles=sorted_handles, edgecolor='black')
     # plt.savefig(f'./result/png/prototype_{prototype}/distribution_map.png')
     # plt.savefig(f'./result/png/3NN_prototype_{prototype}/distribution_map.png')
     # plt.savefig(f'./result/png/prototype_{prototype}/prune_distribution_map.png')
-    # plt.savefig(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune{k}_distribution_map.png')
-    plt.savefig(f'./result/png/prototype_{prototype}/prune_finetune_once/prune{k}_distribution_map.png')
+    plt.savefig(f'./result/png/prototype_{prototype}/prune_finetune/abs/prune{k}_distribution_map_nolegend.png')
+    # plt.savefig(f'./result/png/prototype_{prototype}/prune_finetune_once/prune{k}_distribution_map.png')
     # plt.show()

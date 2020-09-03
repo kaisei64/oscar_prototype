@@ -14,8 +14,10 @@ prototype = "15"
 # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch1_{prototype}.pkl')
 # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/prune_not_finetune_from_abs_small/'
 #                           f'prune_train_model_epoch9_{prototype}.pkl')
-train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/not_abs/prune_conv_proto_finetune_from_small/'
-                          f'prune_train_model_epoch1_{prototype}.pkl')
+train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/not_abs/prune_all_finetune_from_small_at_least_1weight/'
+                          f'prune_train_model_epoch2_{prototype}.pkl')
+# train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/prune_finetune_once/prune_negative/'
+#                           f'prune_train_model_epoch2_15.pkl')
 
 classifier_weight = train_net.classifier[0].weight.cpu().detach().numpy().T
 
@@ -41,7 +43,7 @@ tbl.set_fontsize(30)
 # plt.savefig(f'./result/png/prototype_{prototype}/classifier_weight.png')
 # plt.savefig(f'./result/png/3NN_prototype_{prototype}/classifier_weight.png')
 # plt.savefig(f'./result/png/prototype_{prototype}/prune1_classifier_weight.png')
-plt.savefig(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune1_classifier_weight.png')
+plt.savefig(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune2_classifier_weight.png')
 # plt.show()
 
 # classifier weight distribution

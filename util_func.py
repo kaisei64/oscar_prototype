@@ -110,12 +110,12 @@ def testacc_vis(path, epoch, history):
 
 
 def pruningtestacc_vis(path, epoch, history):
-    plt.figure(figsize=(6, 3.5), tight_layout=True)
+    plt.figure(figsize=(6, 4.5), tight_layout=True)
     history['test_acc'] = [float(val) for val in history['test_acc']]
     plt.plot(range(0, epoch), history['test_acc'])
-    plt.xlabel('Number of weights removed', fontsize=12)
-    plt.ylabel('Accuracy', fontsize=12)
-    plt.tick_params(labelsize=12)
+    # plt.xlabel('Number of weights pruned', fontsize=12)
+    # plt.ylabel('Accuracy', fontsize=12)
+    plt.tick_params(labelsize=24)
     ylabels = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
     plt.yticks(ylabels, ylabels)
     # plt.show()
@@ -150,23 +150,25 @@ def plot_confusion_matrix(cm, classes, output_file,
         print('Confusion matrix, without normalization')
 
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    plt.title(title)
-    plt.colorbar()
+    # plt.title(title)
+    # plt.colorbar()
     tick_marks = np.arange(len(classes))
     # plt.xticks(tick_marks, classes, rotation=45)
     plt.xticks(tick_marks, classes)
     plt.yticks(tick_marks, classes)
+    plt.tick_params(labelsize=12)
 
     fmt = '.2f' if normalize else 'd'
     thresh = cm.max() / 2.
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         plt.text(j, i, format(cm[i, j], fmt),
                  horizontalalignment="center",
-                 color="white" if cm[i, j] > thresh else "black")
+                 color="white" if cm[i, j] > thresh else "black",
+                 fontsize=12)
 
     plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
+    plt.ylabel('True label', fontsize=14)
+    plt.xlabel('Predicted label', fontsize=14)
     plt.savefig(output_file, bbox_inches="tight")
 
 
