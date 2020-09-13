@@ -3,7 +3,7 @@ from dataset import *
 from util_func import list_of_distances
 
 class_num = 10
-prototype_num = 10
+prototype_num = 50
 in_channel_num = 1
 
 

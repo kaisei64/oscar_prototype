@@ -17,7 +17,8 @@ learning_history = {'epoch': [], 'train_acc': [], 'train_total_loss': [], 'train
                     'train_error_1_loss': [], 'train_error_2_loss': [], 'test_acc': []}
 
 prototype = "15"
-train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
+# train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
+train_net = parameter_use(f'./result/pkl/fashionmnist_prototype15/train_model_epoch500_{prototype}.pkl')
 # Make sure all classes have weight
 # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/prune_not_finetune_from_abs_small/'
 #                           f'prune_train_model_epoch9_{prototype}.pkl')
@@ -32,9 +33,9 @@ alpha = 20
 weight_matrix = train_net.classifier[0].weight
 de_mask = torch.ones(weight_matrix.shape)
 # pruning from the large value--------------------------------------------------
-# prune_index_list = np.argsort(weight_matrix.detach().cpu().numpy(), axis=0)[::-1]
+prune_index_list = np.argsort(weight_matrix.detach().cpu().numpy(), axis=0)[::-1]
 # pruning from the small value--------------------------------------------------
-prune_index_list = np.argsort(weight_matrix.detach().cpu().numpy(), axis=0)
+# prune_index_list = np.argsort(weight_matrix.detach().cpu().numpy(), axis=0)
 # pruning from the large absolute value-----------------------------------------
 # prune_index_list = np.argsort(abs(weight_matrix.detach().cpu().numpy()), axis=0)[::-1]
 # pruning from the small absolute value-----------------------------------------
@@ -111,11 +112,11 @@ for count in range(class_num):
         continue
 
     for param in train_net.parameters():
-        param.requires_grad = False
-    train_net.prototype_feature_vectors.requires_grad = True
+        param.requires_grad = True
+    # train_net.prototype_feature_vectors.requires_grad = False
     # for dense in train_net.classifier:
-    #     dense.weight.requires_grad = True
-    tmp_grad = torch.zeros(train_net.prototype_feature_vectors.shape).clone().detach().to(device)
+    #     dense.weight.requires_grad = False
+    # tmp_grad = torch.zeros(train_net.prototype_feature_vectors.shape).clone().detach().to(device)
     for epoch in range(num_epochs):
         # train
         train_net.train()
@@ -139,7 +140,7 @@ for count in range(class_num):
             train_loss += loss.item()
             train_acc += (outputs.max(1)[1] == labels).sum().item()
             loss.backward()
-            tmp_grad += train_net.prototype_feature_vectors.grad
+            # tmp_grad += train_net.prototype_feature_vectors.grad
             optimizer.step()
             with torch.no_grad():
                 weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
@@ -148,19 +149,19 @@ for count in range(class_num):
         avg_train_error_1, avg_train_error_2 = train_error_1 / len(train_loader.dataset), train_error_2 / len(train_loader.dataset)
         print(f'epoch [{epoch + 1}/{num_epochs}], train_loss: {avg_train_loss:.4f}, train_acc: {avg_train_acc:.4f}')
         # visualize grad
-        if epoch == num_epochs - 1:
-            f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
-            f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
-            prototype_grad = train_net.decoder(
-                tmp_grad.reshape(int(prototype), class_num, f_width, f_height)).cpu().detach().numpy()
-            print(prototype_grad)
-            prototype_imgs = train_net.decoder(
-                train_net.prototype_feature_vectors.reshape(int(prototype), class_num, f_width, f_height)).cpu().detach().numpy()
-            for k in range(int(prototype)):
-                conv_vis(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune{count}_proto{k+1}_grad_heatmap.png'
-                         , prototype_grad, k)
-                conv_vis(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune{count}_proto{k+1}_proto_heatmap.png'
-                         , prototype_imgs, k)
+        # if epoch == num_epochs - 1:
+        #     f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+        #     f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+        #     prototype_grad = train_net.decoder(
+        #         tmp_grad.reshape(int(prototype), class_num, f_width, f_height)).cpu().detach().numpy()
+        #     print(prototype_grad)
+        #     prototype_imgs = train_net.decoder(
+        #         train_net.prototype_feature_vectors.reshape(int(prototype), class_num, f_width, f_height)).cpu().detach().numpy()
+        #     for k in range(int(prototype)):
+        #         conv_vis(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune{count}_proto{k+1}_grad_heatmap.png'
+        #                  , prototype_grad, k)
+        #         conv_vis(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune{count}_proto{k+1}_proto_heatmap.png'
+        #                  , prototype_imgs, k)
 
         # test
         avg_test_acc, test_acc = 0, 0
@@ -211,4 +212,4 @@ for count in range(class_num):
                 # plt.show()
                 plt.close()
 
-pruningtestacc_vis(f'./result/png/prototype_{prototype}/testacc_afterprune.png', class_num, learning_history)
+pruningtestacc_vis(f'./result/png/testacc_afterprune.png', class_num, learning_history)

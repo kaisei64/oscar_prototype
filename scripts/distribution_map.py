@@ -15,14 +15,15 @@ prototype = "15"
 for k in range(2, 11):
     # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
     # train_net = parameter_use(f'./result/pkl/3NN_prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
-    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch9_{prototype}.pkl')
-    train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/abs/prune_proto_finetune_from_abs_large/'
-                              f'prune_train_model_epoch{k}_{prototype}.pkl')
+    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/abs/prune_proto_finetune_from_abs_large/'
+    #                           f'prune_train_model_epoch{k}_{prototype}.pkl')
     # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/not_abs/prune_all_finetune_from_small_at_least_1weight/'
     #                           f'prune_train_model_epoch{k}_{prototype}.pkl')
     # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/prune_finetune_once/prune_negative/'
     #                           f'prune_train_model_epoch2_{prototype}.pkl')
-
+    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/acc_10_denseis0/train_model_epoch500_{prototype}.pkl')
+    train_net = parameter_use(f'./result/pkl/fashionmnist_prototype{prototype}/prune_dense/not_abs/prune_all_finetune_from_large/'
+                              f'prune_train_model_epoch{k}_{prototype}.pkl')
 
     examples_to_show = 10000
     examples = [train_dataset[i][0] for i in range(examples_to_show)]
@@ -66,15 +67,16 @@ for k in range(2, 11):
         else:
             plt.plot(data_pca[i][0], data_pca[i][1], ms=50.0, zorder=2, marker=".", color='gray')
             # show prototype order
-            plt.annotate(prototype_name[j], (data_pca[i][0], data_pca[i][1]), size=30)
+            plt.annotate(prototype_name[j], (data_pca[i][0], data_pca[i][1]), size=45)
             j += 1
-    # legend_order = [color_set.index(val) for val in label_keep]
-    # handles_order = [legend_order.index(val) for val in range(model.class_num)]
-    # sorted_handles = [handles[idx] for idx in handles_order]
-    # fig.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=1, fontsize=25, handles=sorted_handles, edgecolor='black')
+    legend_order = [color_set.index(val) for val in label_keep]
+    handles_order = [legend_order.index(val) for val in range(model.class_num)]
+    sorted_handles = [handles[idx] for idx in handles_order]
+    fig.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=1, fontsize=25, handles=sorted_handles, edgecolor='black')
     # plt.savefig(f'./result/png/prototype_{prototype}/distribution_map.png')
     # plt.savefig(f'./result/png/3NN_prototype_{prototype}/distribution_map.png')
-    # plt.savefig(f'./result/png/prototype_{prototype}/prune_distribution_map.png')
-    plt.savefig(f'./result/png/prototype_{prototype}/prune_finetune/abs/prune{k}_distribution_map_nolegend.png')
+    # plt.savefig(f'./result/png/prototype_{prototype}/prune_finetune/abs/prune{k}_distribution_map_nolegend.png')
     # plt.savefig(f'./result/png/prototype_{prototype}/prune_finetune_once/prune{k}_distribution_map.png')
+    # plt.savefig(f'./result/png/prototype_{prototype}/acc_10_denseis0/{k}_distribution_map.png')
+    plt.savefig(f'./result/png/fashionmnist_prototype{prototype}/prune_finetune/not_abs/prune{k}_distribution_map.png')
     # plt.show()
