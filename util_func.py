@@ -100,11 +100,17 @@ def loss_vis(path, epoch, history):
 
 
 def testacc_vis(path, epoch, history):
-    plt.figure()
+    plt.figure(figsize=(6, 4.5), tight_layout=True)
     history['test_acc'] = [float(val) for val in history['test_acc']]
-    plt.plot(range(1, epoch + 1), history['test_acc'])
-    plt.title('test accuracy')
-    plt.xlabel('epoch')
+    acc_list = history['test_acc']
+    if acc_list in '0.0000':
+        acc_list.remove('0.0000')
+    plt.plot(range(1, epoch + 1), acc_list)
+    # plt.title('test accuracy')
+    # plt.xlabel('epoch')
+    plt.tick_params(labelsize=24)
+    ylabels = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    plt.yticks(ylabels, ylabels)
     # plt.show()
     plt.savefig(path)
 
@@ -181,5 +187,4 @@ def make_confusion_matrix(path1, path2, label, pred):
     plt.savefig(path2)
     cnf_matrix = confusion_matrix(label.numpy().tolist(), pred.numpy().tolist(), labels=[i for i in range(10)])
     plt.figure()
-    plot_confusion_matrix(cnf_matrix, classes=[i for i in range(10)],
-                          output_file=path1, title=title)
+    plot_confusion_matrix(cnf_matrix, classes=[i for i in range(10)], output_file=path1, title=title)
