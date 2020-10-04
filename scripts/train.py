@@ -24,7 +24,7 @@ optimizer = optim.Adam(net.parameters(), lr=0.002)
 # training parameters
 num_epochs = 500
 test_display_step = 100
-save_step = 50
+save_step = 100
 
 # elastic deformation parameters
 sigma = 4
@@ -120,11 +120,11 @@ for epoch in range(num_epochs):
 
             f_width = int(math.sqrt(len(net.prototype_feature_vectors[1]) / class_num))
             f_height = int(math.sqrt(len(net.prototype_feature_vectors[1]) / class_num))
-            # prototype_imgs = net.decoder(
+            prototype_imgs = net.decoder(
             # prototype_imgs = net.cifar_decoder(
-            prototype_imgs = net.simple_decoder(
-                # net.prototype_feature_vectors.reshape(prototype_num, class_num, f_width, f_height)).cpu().numpy()
-                net.prototype_feature_vectors).cpu().numpy()
+            # prototype_imgs = net.simple_decoder(
+                net.prototype_feature_vectors.reshape(prototype_num, class_num, f_width, f_height)).cpu().numpy()
+                # net.prototype_feature_vectors).cpu().numpy()
             n_cols = 5
             n_rows = prototype_num // n_cols + 1 if prototype_num % n_cols != 0 else prototype_num // n_cols
             g, b = plt.subplots(n_rows, n_cols, figsize=(n_cols, n_rows), squeeze=False)
@@ -143,11 +143,11 @@ for epoch in range(num_epochs):
 
             examples_to_show = 10
             examples = [train_dataset[i][0] for i in range(examples_to_show)]
-            # examples = torch.cat(examples).reshape(len(examples), *examples[0].shape).to(device)
-            examples = torch.cat(examples).reshape(len(examples), in_width * in_height).to(device)  # simple_decoder
-            # encode_decode = net.decoder(net.encoder(examples))
+            examples = torch.cat(examples).reshape(len(examples), *examples[0].shape).to(device)
+            # examples = torch.cat(examples).reshape(len(examples), in_width * in_height).to(device)  # simple_decoder
+            encode_decode = net.decoder(net.encoder(examples))
             # encode_decode = net.cifar_decoder(net.cifar_encoder(examples))
-            encode_decode = net.simple_decoder(net.simple_encoder(examples))
+            # encode_decode = net.simple_decoder(net.simple_encoder(examples))
             f, a = plt.subplots(2, examples_to_show, figsize=(examples_to_show, 2), squeeze=False)
             for i in range(examples_to_show):
                 a[0][i].imshow(

@@ -103,7 +103,7 @@ def testacc_vis(path, epoch, history):
     plt.figure(figsize=(6, 4.5), tight_layout=True)
     history['test_acc'] = [float(val) for val in history['test_acc']]
     acc_list = history['test_acc']
-    if acc_list in '0.0000':
+    if '0.0000' in acc_list:
         acc_list.remove('0.0000')
     plt.plot(range(1, epoch + 1), acc_list)
     # plt.title('test accuracy')

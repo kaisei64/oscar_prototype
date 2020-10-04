@@ -3,13 +3,13 @@ from dataset import *
 from util_func import list_of_distances
 
 class_num = 10
-prototype_num = 50
+prototype_num = 100
 in_channel_num = 1
 
 
 class ProtoNet(nn.Module):
 
-    def __init__(self):
+    def __init__(self, num_prototype=prototype_num):
         super(ProtoNet, self).__init__()
         self.encoder = nn.Sequential(
             nn.Conv2d(in_channel_num, 32, kernel_size=3, stride=2, padding=1),
@@ -31,43 +31,43 @@ class ProtoNet(nn.Module):
             nn.ConvTranspose2d(32, in_channel_num, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.Sigmoid()
         )
-        self.simple_encoder = nn.Sequential(
-            nn.Linear(in_width * in_height, 128),
-            nn.ReLU(inplace=True),
-            nn.Linear(128, class_num),
-            nn.ReLU(inplace=True)
-        )
-        self.simple_decoder = nn.Sequential(
-            nn.Linear(class_num, 128),
-            nn.ReLU(inplace=True),
-            nn.Linear(128, in_width * in_height),
-            nn.Sigmoid()
-        )
-        self.cifar_encoder = nn.Sequential(
-            nn.Conv2d(in_channel_num, 32, 3, stride=1, padding=1),  # [batch, 32, 32, 32]
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(32),
-            nn.Conv2d(32, 32, 3, stride=2, padding=1),  # [batch, 32, 16, 16]
-            nn.ReLU(inplace=True),
-            nn.Conv2d(32, class_num, 3, stride=1, padding=1),  # [batch, 10, 16, 16]
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(class_num)
-        )
-        self.cifar_decoder = nn.Sequential(
-            nn.ConvTranspose2d(class_num, 32, 3, stride=2, padding=1, output_padding=1),  # [batch, 32, 32, 32]
-            nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(32, 32, 3, stride=1, padding=1),  # [batch, 32, 32, 32]
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(32),
-            nn.ConvTranspose2d(32, in_channel_num, 3, stride=1, padding=1),  # [batch, 1, 32, 32]
-            nn.Sigmoid(),
-        )
+        # self.simple_encoder = nn.Sequential(
+        #     nn.Linear(in_width * in_height, 128),
+        #     nn.ReLU(inplace=True),
+        #     nn.Linear(128, class_num),
+        #     nn.ReLU(inplace=True)
+        # )
+        # self.simple_decoder = nn.Sequential(
+        #     nn.Linear(class_num, 128),
+        #     nn.ReLU(inplace=True),
+        #     nn.Linear(128, in_width * in_height),
+        #     nn.Sigmoid()
+        # )
+        # self.cifar_encoder = nn.Sequential(
+        #     nn.Conv2d(in_channel_num, 32, 3, stride=1, padding=1),  # [batch, 32, 32, 32]
+        #     nn.ReLU(inplace=True),
+        #     nn.BatchNorm2d(32),
+        #     nn.Conv2d(32, 32, 3, stride=2, padding=1),  # [batch, 32, 16, 16]
+        #     nn.ReLU(inplace=True),
+        #     nn.Conv2d(32, class_num, 3, stride=1, padding=1),  # [batch, 10, 16, 16]
+        #     nn.ReLU(inplace=True),
+        #     nn.BatchNorm2d(class_num)
+        # )
+        # self.cifar_decoder = nn.Sequential(
+        #     nn.ConvTranspose2d(class_num, 32, 3, stride=2, padding=1, output_padding=1),  # [batch, 32, 32, 32]
+        #     nn.ReLU(inplace=True),
+        #     nn.ConvTranspose2d(32, 32, 3, stride=1, padding=1),  # [batch, 32, 32, 32]
+        #     nn.ReLU(inplace=True),
+        #     nn.BatchNorm2d(32),
+        #     nn.ConvTranspose2d(32, in_channel_num, 3, stride=1, padding=1),  # [batch, 1, 32, 32]
+        #     nn.Sigmoid(),
+        # )
         self.prototype_feature_vectors = nn.Parameter(
             # torch.nn.init.uniform_(torch.empty(prototype_num, class_num)))  # simple_ae
-            torch.nn.init.uniform_(torch.empty(prototype_num, 2 * 2 * class_num)))
+            torch.nn.init.uniform_(torch.empty(num_prototype, 2 * 2 * class_num)))
             # torch.nn.init.uniform_(torch.empty(prototype_num, 16 * 16 * class_num)))  # cifar10
         self.classifier = nn.Sequential(
-            nn.Linear(prototype_num, class_num, bias=False)
+            nn.Linear(num_prototype, class_num, bias=False)
         )
 
     def forward(self, x):

@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 prototype = "15"
+offset = 0
 for k in range(2, 11):
     # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_train_model_epoch500_{prototype}.pkl')
     # train_net = parameter_use(f'./result/pkl/3NN_prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
@@ -16,10 +17,18 @@ for k in range(2, 11):
     #                           f'prune_train_model_epoch2_{prototype}.pkl')
     # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/prune_finetune_once/prune_negative/'
     #                           f'prune_train_model_epoch2_15.pkl')
-    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/acc_10_denseis0/train_model_epoch500_{prototype}.pkl')
-    train_net = parameter_use(f'./result/pkl/fashionmnist_prototype{prototype}/prune_dense/abs/prune_all_finetune_from_abs_small/'
+    # if offset <= 700:
+    #     train_net = parameter_use(f'./result/pkl/prototype_{prototype}/acc_once_epoch50/train_model_epoch{offset+1}_{prototype}.pkl')
+    # elif offset == 750:
+    #     train_net = parameter_use(f'./result/pkl/prototype_{prototype}/acc_once_epoch50/train_model_epoch{offset}_{prototype}.pkl')
+    # if offset <= 750:
+    #     offset += 50
+    # elif offset > 150:
+    #     offset += 10
+    train_net = parameter_use(f'./result/pkl/fashionmnist_prototype{prototype}/prune_dense/abs/prune_proto_finetune_from_abs_small/'
                               f'prune_train_model_epoch{k}_{prototype}.pkl')
-
+    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_proto/prune_classifier_finetune_from_abs_large_epoch30/'
+    #                           f'prune_train_model_epoch{k}_15.pkl')
     classifier_weight = train_net.classifier[0].weight.cpu().detach().numpy().T
 
     class_name = [i for i in range(10)]
@@ -44,8 +53,14 @@ for k in range(2, 11):
     # plt.savefig(f'./result/png/prototype_{prototype}/classifier_weight.png')
     # plt.savefig(f'./result/png/3NN_prototype_{prototype}/classifier_weight.png')
     # plt.savefig(f'./result/png/prototype_{prototype}/prune_finetune/not_abs/prune2_classifier_weight.png')
-    # plt.savefig(f'./result/png/prototype_{prototype}/acc_10_denseis0/proto_prune_classifier_weight.png')
+    # if offset <= 750:
+    #     plt.savefig(f'./result/png/prototype_{prototype}/epoch{offset - 50 + 1}_prune_classifier_weight.png')
+    # elif 200 < offset <= 300:
+    #     plt.savefig(f'./result/png/prototype_{prototype}/epoch{offset - 10 + 1}_prune_classifier_weight.png')
+    # elif offset == 800:
+    #     plt.savefig(f'./result/png/prototype_{prototype}/epoch{offset - 50}_prune_classifier_weight.png')
     plt.savefig(f'./result/png/fashionmnist_prototype{prototype}/prune_finetune/abs/prune{k}_classifier_weight.png')
+    # plt.savefig(f'./result/png/prototype_{prototype}/prune_proto/prune_finetune/prune{k}_classifier_weight.png')
     # plt.show()
 
 # classifier weight distribution
