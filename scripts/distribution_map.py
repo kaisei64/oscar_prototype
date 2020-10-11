@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn import manifold
 from adjustText import adjust_text
+import umap
+from scipy.sparse.csgraph import connected_components
 
 prototype = "15"
 offset = 0
@@ -91,7 +93,9 @@ for k in range(2, 11):
     # pca.fit(con_vec)
     # data_pca = pca.transform(con_vec)
     # t-sne-------------------------------------------------
-    pca = manifold.TSNE(n_components=2, init='pca', random_state=0)
+    # pca = manifold.TSNE(n_components=2, init='pca', random_state=0)
+    # umap--------------------------------------------------
+    pca = umap.UMAP(n_components=2, init='pca', random_state=0)
     data_pca = pca.fit_transform(con_vec)
 
     fig = plt.figure(figsize=(15, 12), facecolor='w', tight_layout=True)
