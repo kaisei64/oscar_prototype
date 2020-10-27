@@ -188,3 +188,11 @@ def make_confusion_matrix(path1, path2, label, pred):
     cnf_matrix = confusion_matrix(label.numpy().tolist(), pred.numpy().tolist(), labels=[i for i in range(10)])
     plt.figure()
     plot_confusion_matrix(cnf_matrix, classes=[i for i in range(10)], output_file=path1, title=title)
+
+
+def outlier_2s(col):
+    average = np.median(col)
+    sd = np.std(col)
+    outlier_min = average - sd * 1
+    outlier_max = average + sd * 1
+    return outlier_min, outlier_max

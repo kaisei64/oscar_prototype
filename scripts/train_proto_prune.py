@@ -25,10 +25,10 @@ net = ProtoNet().to(device)
 optimizer = optim.Adam(net.parameters(), lr=0.002)
 
 # training parameters
-num_epochs = 750
+num_epochs = 700
 test_display_step = 50
 save_step = 50
-pruning_step = 50
+pruning_step = 5
 final_pruning_step = 50
 
 # elastic deformation parameters
@@ -76,10 +76,8 @@ for epoch in range(num_epochs):
             weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
             proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
     avg_train_loss, avg_train_acc = train_loss / len(train_loader.dataset), train_acc / len(train_loader.dataset)
-    avg_train_class_error, avg_train_ae_error = train_class_error / len(train_loader.dataset), train_ae_error / len(
-        train_loader.dataset)
-    avg_train_error_1, avg_train_error_2 = train_error_1 / len(train_loader.dataset), train_error_2 / len(
-        train_loader.dataset)
+    avg_train_class_error, avg_train_ae_error = train_class_error / len(train_loader.dataset), train_ae_error / len(train_loader.dataset)
+    avg_train_error_1, avg_train_error_2 = train_error_1 / len(train_loader.dataset), train_error_2 / len(train_loader.dataset)
 
     # val
     net.eval()
@@ -193,7 +191,7 @@ for epoch in range(num_epochs):
 
     # prune the prototypes that are close to other prototypes
     with torch.no_grad():
-        if epoch != 0 and epoch <= 250 and epoch % pruning_step == 0:
+        if epoch != 0 and epoch <= 200 and epoch % pruning_step == 0:
         # if epoch != 0 and ((epoch <= 200 and epoch % pruning_step == 0) or (epoch > 200 and epoch % final_pruning_step == 0)):
             proto_distance_list = list()
             for i in range(prototype_num):
@@ -206,32 +204,33 @@ for epoch in range(num_epochs):
                 if i in prune_proto_list:
                     tmp_distance_sum = 10000000
                 proto_distance_list.append(tmp_distance_sum)
-            if epoch <= 200:
-                tmp_prune_proto_list = np.argsort(np.array(proto_distance_list))[:20]
-            # when prototype_num = 100
-            elif epoch <= 250:
-                tmp_prune_proto_list = np.argsort(np.array(proto_distance_list))[:10]
-            # Add already pruned prototype
-            prune_proto_list.extend(tmp_prune_proto_list)
-            for idx in tmp_prune_proto_list:
-                print(f'\n{idx + 1}th prototype pruning')
-                de_mask[:, idx] = 0
-                proto_mask[idx] = 0
-            weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
-            proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
+            # if epoch <= 200:
+            #     tmp_prune_proto_list = np.argsort(np.array(proto_distance_list))[:20]
+            # # when prototype_num = 100
+            # elif epoch <= 250:
+            #     tmp_prune_proto_list = np.argsort(np.array(proto_distance_list))[:10]
+            # # Add already pruned prototype
+            # prune_proto_list.extend(tmp_prune_proto_list)
+            # for idx in tmp_prune_proto_list:
+            #     print(f'\n{idx + 1}th prototype pruning')
+            #     de_mask[:, idx] = 0
+            #     proto_mask[idx] = 0
+            # weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
+            # proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
             # only near prototype pruned
-            # elif epoch > 200:
-            #     tmp_prune_proto_list = np.argsort(np.array(proto_distance_list))[0]
-            #     # Add already pruned prototype
-            #     prune_proto_list.append(tmp_prune_proto_list)
-            #     print(f'\n{tmp_prune_proto_list + 1}th prototype pruning')
-            #     de_mask[:, tmp_prune_proto_list] = 0
-            #     proto_mask[tmp_prune_proto_list] = 0
-            #     weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
-            #     proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
+            if epoch <= 200:
+                tmp_prune_proto_list = np.argsort(np.array(proto_distance_list))[0]
+                # Add already pruned prototype
+                prune_proto_list.append(tmp_prune_proto_list)
+                print(f'\n{tmp_prune_proto_list + 1}th prototype pruning')
+                de_mask[:, tmp_prune_proto_list] = 0
+                proto_mask[tmp_prune_proto_list] = 0
+                weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
+                proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
 
         # pruning the prototypes that does not lose accuracy even if pruned
-        if epoch > 250 and (epoch % final_pruning_step == 0 or epoch == num_epochs - 1):
+        # if epoch > 200 and (epoch % final_pruning_step == 0 or epoch == num_epochs - 1):
+        if epoch > 200 and epoch % final_pruning_step == 0:
             tmp_prune_proto_list = list()
             tmp_accuracy_dict = {}
             tmp_weight_matrix = weight_matrix.clone()

@@ -12,6 +12,7 @@ in_height, in_width = 28, 28
 
 transform_train = transforms.Compose([
     # transforms.Grayscale(num_output_channels=1),  # cifar10
+    # transforms.RandomRotation((-180, 180)),
     transforms.ToTensor(),
     # transforms.Normalize((0.5,), (0.5,))  # cifar10
 ])
