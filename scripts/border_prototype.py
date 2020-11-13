@@ -405,15 +405,61 @@ alpha = 20
 
 # classify border point
 # test
-border_prototype_feature_vec = parameter_use(f'./result/pkl/prototype_{prototype}/border/3/border_point.pkl')
-f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
-f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
-prototype_imgs = train_net.decoder(border_prototype_feature_vec.reshape(len(border_prototype_feature_vec), class_num, f_width, f_height))
-train_net.eval()
-with torch.no_grad():
-    for images in prototype_imgs:
-        images = images.unsqueeze(dim=0).to(device)
-        ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(images)
-        print('softmax')
-        for i, value in enumerate(sum(softmax_output)):
-            print(f'{i}: {value*100:.2f}')
+# border_prototype_feature_vec = parameter_use(f'./result/pkl/prototype_{prototype}/border/2/border_point.pkl')
+# f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+# f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+# prototype_imgs = train_net.decoder(border_prototype_feature_vec.reshape(len(border_prototype_feature_vec), class_num, f_width, f_height))
+# train_net.eval()
+# with torch.no_grad():
+#     for i, images in enumerate(prototype_imgs):
+#         images = images.unsqueeze(dim=0).to(device)
+#         ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(images)
+#         print(f'softmax_{i}')
+#         for j, value in enumerate(sum(softmax_output)):
+#             print(f'{j}: {value*100:.2f}')
+
+# finetune the model using border point as train data
+# border_prototype_feature_vec = parameter_use(f'./result/pkl/prototype_{prototype}/border/2/border_point.pkl')
+# border_labels = torch.tensor([0, 0, 0, 1, 3, 1, 1, 3, 1, 2, 2, 9, 4, 4, 8, 2, 1, 6, 2])
+# f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+# f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+# prototype_imgs = train_net.decoder(border_prototype_feature_vec.reshape(len(border_prototype_feature_vec), class_num, f_width, f_height)).cpu().detach()
+# train_net.train()
+# for epoch in range(1):
+#     # train
+#     train_net.train()
+#     train_loss, train_acc, train_class_error, train_ae_error, train_error_1, train_error_2 = 0, 0, 0, 0, 0, 0
+#     elastic_images = batch_elastic_transform(prototype_imgs.reshape(-1, in_height * in_width), sigma=sigma, alpha=alpha,
+#                                              height=in_height, width=in_width) \
+#         .reshape(-1, in_channel_num, in_height, in_width)
+#     elastic_images, labels = torch.tensor(elastic_images, dtype=dtype).to(device), border_labels.to(device)
+#     optimizer.zero_grad()
+#     ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(elastic_images)
+#     class_error = criterion(outputs, labels)
+#     train_class_error += criterion(outputs, labels)
+#     ae_output = ae_output.reshape(-1, 1, in_width, in_height)  # simple_ae
+#     ae_error = torch.mean(list_of_norms(ae_output - prototype_imgs.to(device)))
+#     train_ae_error += torch.mean(list_of_norms(ae_output - prototype_imgs.to(device)))
+#     error_1 = torch.mean(torch.min(feature_vector_distances, 1)[0])
+#     train_error_1 += torch.mean(torch.min(feature_vector_distances, 1)[0])
+#     error_2 = torch.mean(torch.min(prototype_distances, 1)[0])
+#     train_error_2 += torch.mean(torch.min(prototype_distances, 1)[0])
+#     loss = prototype_loss(class_error, ae_error, error_1, error_2, error_1_flag=True, error_2_flag=True)
+#     train_loss += loss.item()
+#     train_acc += (outputs.max(1)[1] == labels).sum().item()
+#     loss.backward()
+#     optimizer.step()
+#     avg_train_loss, avg_train_acc = train_loss / len(train_loader.dataset), train_acc / len(train_loader.dataset)
+#     avg_train_class_error, avg_train_ae_error = train_class_error / len(train_loader.dataset), train_ae_error / len(train_loader.dataset)
+#     avg_train_error_1, avg_train_error_2 = train_error_1 / len(train_loader.dataset), train_error_2 / len(train_loader.dataset)
+#     parameter_save(f'./result/pkl/prototype_{prototype_num}/border/finetune_border_point.pkl', train_net)
+# test
+# finetune_net = parameter_use(f'./result/pkl/prototype_{prototype_num}/border/finetune_border_point.pkl')
+# avg_test_acc, test_acc = 0, 0
+# with torch.no_grad():
+#     for images, labels in test_loader:
+#         images, labels = images.to(device), labels.to(device)
+#         ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = finetune_net(images)
+#         test_acc += (outputs.max(1)[1] == labels).sum().item()
+#     avg_test_acc = test_acc / len(test_loader.dataset)
+#     print(f'test_acc: {avg_test_acc:.4f}')
