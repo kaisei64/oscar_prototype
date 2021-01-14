@@ -37,7 +37,7 @@ for k in range(2, 11):
         avg_test_acc, test_acc = 0, 0
         for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
-            ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(images)
+            ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(images)
             test_acc += (outputs.max(1)[1] == labels).sum().item()
             if output_hold.shape < torch.Size([1]):
                 output_hold = outputs.max(1)[1]
@@ -92,7 +92,7 @@ for k in range(2, 11):
 #         avg_test_acc, test_acc = 0, 0
 #         for images, labels in test_loader:
 #             images, labels = images.to(device), labels.to(device)
-#             ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(images)
+#             ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(images)
 #             test_acc += (outputs.max(1)[1] == labels).sum().item()
 #         avg_test_acc = test_acc / len(test_loader.dataset)
 #         learning_history['test_acc'].append(avg_test_acc)

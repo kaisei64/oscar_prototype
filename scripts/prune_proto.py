@@ -23,7 +23,7 @@ train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch
 #                           f'prune_train_model_epoch7_{prototype}.pkl')
 optimizer = optim.Adam(train_net.parameters(), lr=0.002)
 # training parameters
-num_epochs = 30
+num_epochs = 5
 save_step = 10
 # elastic deformation parameters
 sigma = 4
@@ -45,18 +45,18 @@ prune_index_list = np.argsort(np.sum(abs(weight_matrix.detach().cpu().numpy()), 
 
 for count in range(int(prototype)):
     print(f'\nprototype pruning: {count}')
-    if count != 0:
-        de_mask[:, prune_index_list[count-1]] = 0
-        proto_mask[prune_index_list[count-1]] = 0
-        with torch.no_grad():
-            weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
-            proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
+    # if count != 0:
+    #     de_mask[:, prune_index_list[count-1]] = 0
+    #     proto_mask[prune_index_list[count-1]] = 0
+    #     with torch.no_grad():
+    #         weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
+    #         proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
     # weight_pruning_not_finetune, only test-----------------------------
     # with torch.no_grad():
     #     avg_test_acc, test_acc = 0, 0
     #     for images, labels in test_loader:
     #         images, labels = images.to(device), labels.to(device)
-    #         ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(images)
+    #         ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(images)
     #         test_acc += (outputs.max(1)[1] == labels).sum().item()
     #     avg_test_acc = test_acc / len(test_loader.dataset)
     #     print(f'test_acc: {avg_test_acc:.4f}')
@@ -68,7 +68,7 @@ for count in range(int(prototype)):
         avg_test_acc, test_acc = 0, 0
         for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
-            ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(images)
+            ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(images)
             test_acc += (outputs.max(1)[1] == labels).sum().item()
         avg_test_acc = test_acc / len(test_loader.dataset)
         print(f'test_acc: {avg_test_acc:.4f}')
@@ -83,32 +83,33 @@ for count in range(int(prototype)):
         continue
 
     # prune the prototypes that are close to other prototypes----------------------------------------------------
-    # with torch.no_grad():
-    #     proto_distance_list = list()
-    #     for i in range(int(prototype)):
-    #         tmp_distance_sum = 0
-    #         for j in range(int(prototype)):
-    #             if j not in prune_proto_list:
-    #                 tmp_distance_sum += euclidean(train_net.prototype_feature_vectors[i].cpu().detach().numpy(),
-    #                                               train_net.prototype_feature_vectors[j].cpu().detach().numpy())
-    #         # Exclude prototypes that have already been pruned
-    #         if i in prune_proto_list:
-    #             tmp_distance_sum = 10000000
-    #         proto_distance_list.append(tmp_distance_sum)
-    #     tmp_prune_proto_list = np.argsort(np.array(proto_distance_list))[0]
-    #     # Add already pruned prototype
-    #     prune_proto_list.append(tmp_prune_proto_list)
-    #     print(f'\n{tmp_prune_proto_list + 1}th prototype pruning')
-    #     de_mask[:, tmp_prune_proto_list] = 0
-    #     proto_mask[tmp_prune_proto_list] = 0
-    #     weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
-    #     proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
+    with torch.no_grad():
+        proto_distance_list = list()
+        for i in range(int(prototype)):
+            tmp_distance_sum = 0
+            for j in range(int(prototype)):
+                if j not in prune_proto_list:
+                    tmp_distance_sum += euclidean(train_net.prototype_feature_vectors[i].cpu().detach().numpy(),
+                                                  train_net.prototype_feature_vectors[j].cpu().detach().numpy())
+            # Exclude prototypes that have already been pruned
+            if i in prune_proto_list:
+                tmp_distance_sum = 10000000
+            proto_distance_list.append(tmp_distance_sum)
+        # tmp_prune_proto_list = np.argsort(np.array(proto_distance_list))[0] # near
+        tmp_prune_proto_list = np.argsort(np.array(proto_distance_list))[0][::-1] # far
+        # Add already pruned prototype
+        prune_proto_list.append(tmp_prune_proto_list)
+        print(f'\n{tmp_prune_proto_list + 1}th prototype pruning')
+        de_mask[:, tmp_prune_proto_list] = 0
+        proto_mask[tmp_prune_proto_list] = 0
+        weight_matrix *= torch.tensor(de_mask, device=device, dtype=dtype)
+        proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
 
     for param in train_net.parameters():
-        param.requires_grad = False
+        param.requires_grad = True
     # train_net.prototype_feature_vectors.requires_grad = True
-    for dense in train_net.classifier:
-        dense.weight.requires_grad = True
+    # for dense in train_net.classifier:
+    #     dense.weight.requires_grad = True
     for epoch in range(num_epochs):
         # train
         train_net.train()
@@ -119,7 +120,7 @@ for count in range(int(prototype)):
                 .reshape(-1, in_channel_num, in_height, in_width)
             elastic_images, labels = torch.tensor(elastic_images, dtype=dtype).to(device), labels.to(device)
             optimizer.zero_grad()
-            ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(elastic_images)
+            ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(elastic_images)
             class_error = criterion(outputs, labels)
             train_class_error += criterion(outputs, labels)
             ae_error = torch.mean(list_of_norms(ae_output - images.to(device)))
@@ -145,7 +146,7 @@ for count in range(int(prototype)):
         avg_test_acc, test_acc = 0, 0
         for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
-            ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(images)
+            ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(images)
             test_acc += (outputs.max(1)[1] == labels).sum().item()
         avg_test_acc = test_acc / len(test_loader.dataset)
         print(f'test_acc: {avg_test_acc:.4f}')

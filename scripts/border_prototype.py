@@ -5,7 +5,7 @@ sys.path.append(pardir)
 from util_func import parameter_use, batch_elastic_transform, list_of_norms, result_save, parameter_save, outlier_2s
 from loss import *
 from dataset import *
-from model import class_num, in_channel_num, prototype_num
+from model import class_num, in_channel_num, prototype_num, ProtoNet
 import torch
 import torch.optim as optim
 import numpy as np
@@ -22,7 +22,7 @@ prototype = "15"
 train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
 optimizer = optim.Adam(train_net.parameters(), lr=0.002)
 # training parameters
-num_epochs = 1
+num_epochs = 150
 save_step = 50
 test_display_step = 50
 # elastic deformation parameters
@@ -31,17 +31,43 @@ alpha = 20
 
 # make prototype----------------------------------------------------------------------------------------------------
 # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
-# examples_to_show = 10000
-# color_set = ["b", "g", "r", "c", "m", "y", "#6a5acd", '#f781bf', '#a65628', '#ff7f00']
-# prototype_name = [chr(ord('A') + i) for i in range(int(prototype)*5)]
-#
-# # pca = umap.UMAP()
-# # data_pca = pca.fit(feature_vec)
-# # parameter_save(f'./result/pkl/umap_prototype{prototype_num}.pkl', data_pca)
-# data_pca = parameter_use(f'./result/pkl/prototype_{prototype}/border/umap_prototype{prototype_num}.pkl')
-# labels = np.array([test_dataset[i][1] for i in range(examples_to_show)])
-#
-# embed = data_pca.embedding_
+examples_to_show = 10000
+color_set = ["b", "g", "r", "c", "m", "y", "#6a5acd", '#f781bf', '#a65628', '#ff7f00']
+prototype_name = [chr(ord('A') + i) for i in range(int(prototype)*5)]
+
+# pca = umap.UMAP()
+examples = [test_dataset[i][0] for i in range(examples_to_show)]
+examples = torch.cat(examples).reshape(len(examples), *examples[0].shape).to(device)
+# feature_vec = train_net.encoder(examples).reshape(-1, 10 * 2 * 2).cpu().detach().numpy()
+# data_pca = pca.fit(feature_vec)
+# parameter_save(f'./result/pkl/umap_prototype{prototype_num}.pkl', data_pca)
+data_pca = parameter_use(f'./result/pkl/prototype_{prototype}/border/umap_prototype{prototype_num}.pkl')
+labels = np.array([test_dataset[i][1] for i in range(examples_to_show)])
+
+embed = data_pca.embedding_
+# check umap output-----------------------------------------------------------------------------------------------
+# inv_border_points = torch.tensor(data_pca.inverse_transform(embed[:5]), dtype=dtype, device=device)
+# inv_transformed_border_points = train_net.decoder(
+#     inv_border_points.reshape(len(inv_border_points), class_num, 2, 2)).cpu().detach().numpy()
+# f, a = plt.subplots(2, 5, squeeze=False)
+# for i in range(5):
+#     a[0][i].imshow(
+#         examples[i].cpu().numpy().reshape(in_height, in_width),
+#         # examples[i].cpu().numpy().reshape(in_height, in_width, in_channel_num),
+#         cmap='gray',
+#         interpolation='none')
+#     a[0][i].axis('off')
+#     a[1][i].imshow(
+#         inv_transformed_border_points[i].reshape(in_height, in_width),
+#         # encode_decode[i].cpu().numpy().reshape(in_height, in_width, in_channel_num),
+#         cmap='gray',
+#         interpolation='none')
+#     a[1][i].axis('off')
+# plt.savefig(f'./result/png/umap_check.png', transparent=True, bbox_inches='tight', pad_inches=0)
+# plt.close()
+# exit()
+# ------------------------------------------------------------------------------------------------------------------
+
 # embed_labels = list()
 # for i, label in enumerate(labels):
 #     tmp = np.append(embed[i], label)
@@ -250,160 +276,160 @@ alpha = 20
 # parameter_save(f'./result/pkl/prototype_{prototype}/border/border_point.pkl', inv_border_points)
 # plt.savefig(f'./result/png/prototype_{prototype}/border/distribution_map.png')
 
-# use prototype-----------------------------------------------------------------------------------------------------
-# border_prototype_feature_vec = parameter_use(f'./result/pkl/prototype_{prototype}/border/4/border_point.pkl')
-# # border_prototype_feature_vec = torch.tensor(np.delete(border_prototype_feature_vec.cpu().detach().numpy(), [3, 5, 8, 15], axis=0), dtype=dtype, device=device)
-# proto_matrix = train_net.prototype_feature_vectors
-# proto_mask = torch.ones(proto_matrix.shape)
-# with torch.no_grad():
-#     for i, value in enumerate(border_prototype_feature_vec):
-#         proto_matrix[i] = value
-# #     proto_mask[len(border_prototype_feature_vec):, :] = 0
-# #     proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
-#
-# for param in train_net.parameters():
-#     param.requires_grad = False
-# # train_net.prototype_feature_vectors.requires_grad = False
+# use prototype---------------------------------------------------------------------------------------------------------
+border_prototype_feature_vec = parameter_use(f'./result/pkl/prototype_{prototype}/border/4/border_point.pkl')
+# border_prototype_feature_vec = torch.tensor(np.delete(border_prototype_feature_vec.cpu().detach().numpy(), [3, 5, 8, 15], axis=0), dtype=dtype, device=device)
+proto_matrix = train_net.prototype_feature_vectors
+proto_mask = torch.ones(proto_matrix.shape)
+with torch.no_grad():
+    for i, value in enumerate(border_prototype_feature_vec):
+        proto_matrix[i] = value
+#     proto_mask[len(border_prototype_feature_vec):, :] = 0
+#     proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
+
+for param in train_net.parameters():
+    param.requires_grad = True
+train_net.prototype_feature_vectors.requires_grad = False
 # for dense in train_net.classifier:
 #     dense.weight.requires_grad = True
-# for epoch in range(num_epochs):
-#     # train
-#     train_net.train()
-#     train_loss, train_acc, train_class_error, train_ae_error, train_error_1, train_error_2 = 0, 0, 0, 0, 0, 0
-#     for i, (images, labels) in enumerate(train_loader):
-#         elastic_images = batch_elastic_transform(images.reshape(-1, in_height * in_width), sigma=sigma, alpha=alpha,
-#                                                  height=in_height, width=in_width) \
-#             .reshape(-1, in_channel_num, in_height, in_width)
-#         elastic_images, labels = torch.tensor(elastic_images, dtype=dtype).to(device), labels.to(device)
-#         optimizer.zero_grad()
-#         ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(elastic_images)
-#         class_error = criterion(outputs, labels)
-#         train_class_error += criterion(outputs, labels)
-#         ae_output = ae_output.reshape(-1, 1, in_width, in_height)  # simple_ae
-#         ae_error = torch.mean(list_of_norms(ae_output - images.to(device)))
-#         train_ae_error += torch.mean(list_of_norms(ae_output - images.to(device)))
-#         error_1 = torch.mean(torch.min(feature_vector_distances, 1)[0])
-#         train_error_1 += torch.mean(torch.min(feature_vector_distances, 1)[0])
-#         error_2 = torch.mean(torch.min(prototype_distances, 1)[0])
-#         train_error_2 += torch.mean(torch.min(prototype_distances, 1)[0])
-#         loss = prototype_loss(class_error, ae_error, error_1, error_2, error_1_flag=True, error_2_flag=True)
-#         train_loss += loss.item()
-#         train_acc += (outputs.max(1)[1] == labels).sum().item()
-#         loss.backward()
-#         optimizer.step()
-#         # with torch.no_grad():
-#         #     proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
-#     avg_train_loss, avg_train_acc = train_loss / len(train_loader.dataset), train_acc / len(train_loader.dataset)
-#     avg_train_class_error, avg_train_ae_error = train_class_error / len(train_loader.dataset), train_ae_error / len(train_loader.dataset)
-#     avg_train_error_1, avg_train_error_2 = train_error_1 / len(train_loader.dataset), train_error_2 / len(train_loader.dataset)
-#
-#     # val
-#     train_net.eval()
-#     val_loss, val_acc, val_class_error, val_ae_error, val_error_1, val_error_2 = 0, 0, 0, 0, 0, 0
-#     with torch.no_grad():
-#         for images, labels in val_loader:
-#             images, labels = images.to(device), labels.to(device)
-#             ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(images)
-#             class_error = criterion(outputs, labels)
-#             val_class_error += criterion(outputs, labels)
-#             ae_output = ae_output.reshape(-1, 1, in_width, in_height)  # simple_ae
-#             ae_error = torch.mean(list_of_norms(ae_output - images))
-#             val_ae_error += torch.mean(list_of_norms(ae_output - images))
-#             error_1 = torch.mean(torch.min(feature_vector_distances))
-#             val_error_1 += torch.mean(torch.min(feature_vector_distances))
-#             error_2 = torch.mean(torch.min(prototype_distances))
-#             val_error_2 += torch.mean(torch.min(prototype_distances))
-#             loss = prototype_loss(val_class_error, val_ae_error, val_error_1, val_error_2, error_1_flag=True, error_2_flag=True)
-#             val_loss += loss.item()
-#             val_acc += (outputs.max(1)[1] == labels).sum().item()
-#         avg_val_loss, avg_val_acc = val_loss / len(val_loader.dataset), val_acc / len(val_loader.dataset)
-#         avg_val_class_error, avg_val_ae_error = val_class_error / len(val_loader.dataset), val_ae_error / len(val_loader.dataset)
-#         avg_val_error_1, avg_val_error_2 = val_error_1 / len(val_loader.dataset), val_error_2 / len(val_loader.dataset)
-#     print(f'epoch [{epoch + 1}/{num_epochs}], train_loss: {avg_train_loss:.4f}'
-#           f', train_acc: {avg_train_acc:.4f}, 'f'val_loss: {avg_val_loss:.4f}, val_acc: {avg_val_acc:.4f}')
-#
-#     # test
-#     avg_test_acc, test_acc = 0, 0
-#     with torch.no_grad():
-#         if epoch % test_display_step == 0 or epoch == num_epochs - 1:
-#             for images, labels in test_loader:
-#                 images, labels = images.to(device), labels.to(device)
-#                 ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(images)
-#                 test_acc += (outputs.max(1)[1] == labels).sum().item()
-#             avg_test_acc = test_acc / len(test_loader.dataset)
-#             print(f'test_acc: {avg_test_acc:.4f}')
-#
-#     # save the learning history
-#     learning_history['epoch'].append(epoch + 1)
-#     learning_history['train_acc'].append(f'{avg_train_acc:.4f}')
-#     learning_history['train_total_loss'].append(f'{avg_train_loss:.4f}')
-#     learning_history['train_class_loss'].append(f'{avg_train_class_error:.4e}')
-#     learning_history['train_ae_loss'].append(f'{avg_train_ae_error:.4e}')
-#     learning_history['train_error_1_loss'].append(f'{avg_train_error_1:.4e}')
-#     learning_history['train_error_2_loss'].append(f'{avg_train_error_2:.4e}')
-#     learning_history['val_acc'].append(f'{avg_val_acc:.4f}')
-#     learning_history['val_total_loss'].append(f'{avg_val_loss:.4f}')
-#     learning_history['val_class_loss'].append(f'{avg_val_class_error:.4e}')
-#     learning_history['val_ae_loss'].append(f'{avg_val_ae_error:.4e}')
-#     learning_history['val_error_1_loss'].append(f'{avg_val_error_1:.4e}')
-#     learning_history['val_error_2_loss'].append(f'{avg_val_error_2:.4e}')
-#     learning_history['test_acc'].append(f'{avg_test_acc:.4f}')
-#     result_save(f'./result/csv/train_history_{prototype_num}_border.csv', learning_history)
-#
-#     # save model, prototype and ae_out
-#     if epoch % save_step == 0 or epoch == num_epochs - 1:
-#         with torch.no_grad():
-#             parameter_save(f'./result/pkl/train_model_epoch{epoch + 1}_{prototype_num}_border.pkl', train_net)
-#
-#             f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
-#             f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
-#             prototype_imgs = train_net.decoder(
-#                 # prototype_imgs = train_net.cifar_decoder(
-#                 # prototype_imgs = train_net.simple_decoder(
-#                 train_net.prototype_feature_vectors.reshape(prototype_num, class_num, f_width, f_height)).cpu().numpy()
-#             # train_net.prototype_feature_vectors).cpu().numpy()
-#             n_cols = 5
-#             n_rows = prototype_num // n_cols + 1 if prototype_num % n_cols != 0 else prototype_num // n_cols
-#             g, b = plt.subplots(n_rows, n_cols, figsize=(n_cols, n_rows), squeeze=False)
-#             for i in range(n_rows):
-#                 for j in range(n_cols):
-#                     if i * n_cols + j < prototype_num:
-#                         b[i][j].imshow(
-#                             prototype_imgs[i * n_cols + j].reshape(in_height, in_width),
-#                             # prototype_imgs[i * n_cols + j].reshape(in_height, in_width, in_channel_num),
-#                             cmap='gray',
-#                             interpolation='none')
-#                         b[i][j].axis('off')
-#             plt.savefig(f'./result/png/prototype_epoch{epoch + 1}_{prototype_num}_border.png',
-#                         transparent=True, bbox_inches='tight', pad_inches=0)
-#             plt.close()
-#
-#             examples_to_show = 10
-#             examples = [train_dataset[i][0] for i in range(examples_to_show)]
-#             examples = torch.cat(examples).reshape(len(examples), *examples[0].shape).to(device)
-#             # examples = torch.cat(examples).reshape(len(examples), in_width * in_height).to(device)  # simple_decoder
-#             encode_decode = train_net.decoder(train_net.encoder(examples))
-#             # encode_decode = train_net.cifar_decoder(train_net.cifar_encoder(examples))
-#             # encode_decode = train_net.simple_decoder(train_net.simple_encoder(examples))
-#             f, a = plt.subplots(2, examples_to_show, figsize=(examples_to_show, 2), squeeze=False)
-#             for i in range(examples_to_show):
-#                 a[0][i].imshow(
-#                     examples[i].cpu().numpy().reshape(in_height, in_width),
-#                     # examples[i].cpu().numpy().reshape(in_height, in_width, in_channel_num),
-#                     cmap='gray',
-#                     interpolation='none')
-#                 a[0][i].axis('off')
-#                 a[1][i].imshow(
-#                     encode_decode[i].cpu().numpy().reshape(in_height, in_width),
-#                     # encode_decode[i].cpu().numpy().reshape(in_height, in_width, in_channel_num),
-#                     cmap='gray',
-#                     interpolation='none')
-#                 a[1][i].axis('off')
-#             plt.savefig(f'./result/png/ae_decode_epoch{epoch + 1}_{prototype_num}_border.png',
-#                         transparent=True, bbox_inches='tight', pad_inches=0)
-#             plt.close()
+for epoch in range(num_epochs):
+    # train
+    train_net.train()
+    train_loss, train_acc, train_class_error, train_ae_error, train_error_1, train_error_2 = 0, 0, 0, 0, 0, 0
+    for i, (images, labels) in enumerate(train_loader):
+        elastic_images = batch_elastic_transform(images.reshape(-1, in_height * in_width), sigma=sigma, alpha=alpha,
+                                                 height=in_height, width=in_width) \
+            .reshape(-1, in_channel_num, in_height, in_width)
+        elastic_images, labels = torch.tensor(elastic_images, dtype=dtype).to(device), labels.to(device)
+        optimizer.zero_grad()
+        ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(elastic_images)
+        class_error = criterion(outputs, labels)
+        train_class_error += criterion(outputs, labels)
+        ae_output = ae_output.reshape(-1, 1, in_width, in_height)  # simple_ae
+        ae_error = torch.mean(list_of_norms(ae_output - images.to(device)))
+        train_ae_error += torch.mean(list_of_norms(ae_output - images.to(device)))
+        error_1 = torch.mean(torch.min(feature_vector_distances, 1)[0])
+        train_error_1 += torch.mean(torch.min(feature_vector_distances, 1)[0])
+        error_2 = torch.mean(torch.min(prototype_distances, 1)[0])
+        train_error_2 += torch.mean(torch.min(prototype_distances, 1)[0])
+        loss = prototype_loss(class_error, ae_error, error_1, error_2, error_1_flag=True, error_2_flag=True)
+        train_loss += loss.item()
+        train_acc += (outputs.max(1)[1] == labels).sum().item()
+        loss.backward()
+        optimizer.step()
+        # with torch.no_grad():
+        #     proto_matrix *= torch.tensor(proto_mask, device=device, dtype=dtype)
+    avg_train_loss, avg_train_acc = train_loss / len(train_loader.dataset), train_acc / len(train_loader.dataset)
+    avg_train_class_error, avg_train_ae_error = train_class_error / len(train_loader.dataset), train_ae_error / len(train_loader.dataset)
+    avg_train_error_1, avg_train_error_2 = train_error_1 / len(train_loader.dataset), train_error_2 / len(train_loader.dataset)
 
-# classify border point
+    # val
+    train_net.eval()
+    val_loss, val_acc, val_class_error, val_ae_error, val_error_1, val_error_2 = 0, 0, 0, 0, 0, 0
+    with torch.no_grad():
+        for images, labels in val_loader:
+            images, labels = images.to(device), labels.to(device)
+            ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(images)
+            class_error = criterion(outputs, labels)
+            val_class_error += criterion(outputs, labels)
+            ae_output = ae_output.reshape(-1, 1, in_width, in_height)  # simple_ae
+            ae_error = torch.mean(list_of_norms(ae_output - images))
+            val_ae_error += torch.mean(list_of_norms(ae_output - images))
+            error_1 = torch.mean(torch.min(feature_vector_distances))
+            val_error_1 += torch.mean(torch.min(feature_vector_distances))
+            error_2 = torch.mean(torch.min(prototype_distances))
+            val_error_2 += torch.mean(torch.min(prototype_distances))
+            loss = prototype_loss(val_class_error, val_ae_error, val_error_1, val_error_2, error_1_flag=True, error_2_flag=True)
+            val_loss += loss.item()
+            val_acc += (outputs.max(1)[1] == labels).sum().item()
+        avg_val_loss, avg_val_acc = val_loss / len(val_loader.dataset), val_acc / len(val_loader.dataset)
+        avg_val_class_error, avg_val_ae_error = val_class_error / len(val_loader.dataset), val_ae_error / len(val_loader.dataset)
+        avg_val_error_1, avg_val_error_2 = val_error_1 / len(val_loader.dataset), val_error_2 / len(val_loader.dataset)
+    print(f'epoch [{epoch + 1}/{num_epochs}], train_loss: {avg_train_loss:.4f}'
+          f', train_acc: {avg_train_acc:.4f}, 'f'val_loss: {avg_val_loss:.4f}, val_acc: {avg_val_acc:.4f}')
+
+    # test
+    avg_test_acc, test_acc = 0, 0
+    with torch.no_grad():
+        if epoch % test_display_step == 0 or epoch == num_epochs - 1:
+            for images, labels in test_loader:
+                images, labels = images.to(device), labels.to(device)
+                ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(images)
+                test_acc += (outputs.max(1)[1] == labels).sum().item()
+            avg_test_acc = test_acc / len(test_loader.dataset)
+            print(f'test_acc: {avg_test_acc:.4f}')
+
+    # save the learning history
+    learning_history['epoch'].append(epoch + 1)
+    learning_history['train_acc'].append(f'{avg_train_acc:.4f}')
+    learning_history['train_total_loss'].append(f'{avg_train_loss:.4f}')
+    learning_history['train_class_loss'].append(f'{avg_train_class_error:.4e}')
+    learning_history['train_ae_loss'].append(f'{avg_train_ae_error:.4e}')
+    learning_history['train_error_1_loss'].append(f'{avg_train_error_1:.4e}')
+    learning_history['train_error_2_loss'].append(f'{avg_train_error_2:.4e}')
+    learning_history['val_acc'].append(f'{avg_val_acc:.4f}')
+    learning_history['val_total_loss'].append(f'{avg_val_loss:.4f}')
+    learning_history['val_class_loss'].append(f'{avg_val_class_error:.4e}')
+    learning_history['val_ae_loss'].append(f'{avg_val_ae_error:.4e}')
+    learning_history['val_error_1_loss'].append(f'{avg_val_error_1:.4e}')
+    learning_history['val_error_2_loss'].append(f'{avg_val_error_2:.4e}')
+    learning_history['test_acc'].append(f'{avg_test_acc:.4f}')
+    result_save(f'./result/csv/train_history_{prototype_num}_border.csv', learning_history)
+
+    # save model, prototype and ae_out
+    if epoch % save_step == 0 or epoch == num_epochs - 1:
+        with torch.no_grad():
+            parameter_save(f'./result/pkl/train_model_epoch{epoch + 1}_{prototype_num}_border.pkl', train_net)
+
+            f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+            f_height = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
+            prototype_imgs = train_net.decoder(
+                # prototype_imgs = train_net.cifar_decoder(
+                # prototype_imgs = train_net.simple_decoder(
+                train_net.prototype_feature_vectors.reshape(prototype_num, class_num, f_width, f_height)).cpu().numpy()
+            # train_net.prototype_feature_vectors).cpu().numpy()
+            n_cols = 5
+            n_rows = prototype_num // n_cols + 1 if prototype_num % n_cols != 0 else prototype_num // n_cols
+            g, b = plt.subplots(n_rows, n_cols, figsize=(n_cols, n_rows), squeeze=False)
+            for i in range(n_rows):
+                for j in range(n_cols):
+                    if i * n_cols + j < prototype_num:
+                        b[i][j].imshow(
+                            prototype_imgs[i * n_cols + j].reshape(in_height, in_width),
+                            # prototype_imgs[i * n_cols + j].reshape(in_height, in_width, in_channel_num),
+                            cmap='gray',
+                            interpolation='none')
+                        b[i][j].axis('off')
+            plt.savefig(f'./result/png/prototype_epoch{epoch + 1}_{prototype_num}_border.png',
+                        transparent=True, bbox_inches='tight', pad_inches=0)
+            plt.close()
+
+            examples_to_show = 10
+            examples = [train_dataset[i][0] for i in range(examples_to_show)]
+            examples = torch.cat(examples).reshape(len(examples), *examples[0].shape).to(device)
+            # examples = torch.cat(examples).reshape(len(examples), in_width * in_height).to(device)  # simple_decoder
+            encode_decode = train_net.decoder(train_net.encoder(examples))
+            # encode_decode = train_net.cifar_decoder(train_net.cifar_encoder(examples))
+            # encode_decode = train_net.simple_decoder(train_net.simple_encoder(examples))
+            f, a = plt.subplots(2, examples_to_show, figsize=(examples_to_show, 2), squeeze=False)
+            for i in range(examples_to_show):
+                a[0][i].imshow(
+                    examples[i].cpu().numpy().reshape(in_height, in_width),
+                    # examples[i].cpu().numpy().reshape(in_height, in_width, in_channel_num),
+                    cmap='gray',
+                    interpolation='none')
+                a[0][i].axis('off')
+                a[1][i].imshow(
+                    encode_decode[i].cpu().numpy().reshape(in_height, in_width),
+                    # encode_decode[i].cpu().numpy().reshape(in_height, in_width, in_channel_num),
+                    cmap='gray',
+                    interpolation='none')
+                a[1][i].axis('off')
+            plt.savefig(f'./result/png/ae_decode_epoch{epoch + 1}_{prototype_num}_border.png',
+                        transparent=True, bbox_inches='tight', pad_inches=0)
+            plt.close()
+
+# classify border point-------------------------------------------------------------------------------------------------
 # test
 # border_prototype_feature_vec = parameter_use(f'./result/pkl/prototype_{prototype}/border/2/border_point.pkl')
 # f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))
@@ -413,12 +439,12 @@ alpha = 20
 # with torch.no_grad():
 #     for i, images in enumerate(prototype_imgs):
 #         images = images.unsqueeze(dim=0).to(device)
-#         ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(images)
+#         ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(images)
 #         print(f'softmax_{i}')
 #         for j, value in enumerate(sum(softmax_output)):
 #             print(f'{j}: {value*100:.2f}')
 
-# finetune the model using border point as train data
+# finetune the model using border point as train data-------------------------------------------------------------------
 # border_prototype_feature_vec = parameter_use(f'./result/pkl/prototype_{prototype}/border/2/border_point.pkl')
 # border_labels = torch.tensor([0, 0, 0, 1, 3, 1, 1, 3, 1, 2, 2, 9, 4, 4, 8, 2, 1, 6, 2])
 # f_width = int(math.sqrt(len(train_net.prototype_feature_vectors[1]) / class_num))

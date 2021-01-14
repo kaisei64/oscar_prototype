@@ -23,8 +23,9 @@ optimizer = optim.Adam(net.parameters(), lr=0.002)
 
 # training parameters
 num_epochs = 500
-test_display_step = 100
-save_step = 100
+test_display_step = 30
+save_step = 30
+threshold_dis = 1
 
 # elastic deformation parameters
 sigma = 4
@@ -40,7 +41,7 @@ for epoch in range(num_epochs):
                                                  .reshape(-1, in_channel_num, in_height, in_width)
         elastic_images, labels = torch.tensor(elastic_images, dtype=dtype).to(device), labels.to(device)
         optimizer.zero_grad()
-        ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = net(elastic_images)
+        ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = net(elastic_images)
         class_error = criterion(outputs, labels)
         train_class_error += criterion(outputs, labels)
         ae_output = ae_output.reshape(-1, 1, in_width, in_height)  # simple_ae
@@ -50,7 +51,8 @@ for epoch in range(num_epochs):
         train_error_1 += torch.mean(torch.min(feature_vector_distances, 1)[0])
         error_2 = torch.mean(torch.min(prototype_distances, 1)[0])
         train_error_2 += torch.mean(torch.min(prototype_distances, 1)[0])
-        loss = prototype_loss(class_error, ae_error, error_1, error_2, error_1_flag=True, error_2_flag=True)
+        error_3 = torch.mean(proto_proto_distances)
+        loss = prototype_loss(class_error, ae_error, error_1, error_2, error_3, error_1_flag=True, error_2_flag=True, error_3_flag=True)
         train_loss += loss.item()
         train_acc += (outputs.max(1)[1] == labels).sum().item()
         loss.backward()
@@ -65,7 +67,7 @@ for epoch in range(num_epochs):
     with torch.no_grad():
         for images, labels in val_loader:
             images, labels = images.to(device), labels.to(device)
-            ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = net(images)
+            ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = net(images)
             class_error = criterion(outputs, labels)
             val_class_error += criterion(outputs, labels)
             ae_output = ae_output.reshape(-1, 1, in_width, in_height)  # simple_ae
@@ -75,8 +77,8 @@ for epoch in range(num_epochs):
             val_error_1 += torch.mean(torch.min(feature_vector_distances))
             error_2 = torch.mean(torch.min(prototype_distances))
             val_error_2 += torch.mean(torch.min(prototype_distances))
-            loss = prototype_loss(val_class_error, val_ae_error, val_error_1, val_error_2, error_1_flag=True,
-                                  error_2_flag=True)
+            error_3 = torch.mean(proto_proto_distances)
+            loss = prototype_loss(class_error, ae_error, error_1, error_2, error_3, error_1_flag=True, error_2_flag=True, error_3_flag=True)
             val_loss += loss.item()
             val_acc += (outputs.max(1)[1] == labels).sum().item()
         avg_val_loss, avg_val_acc = val_loss / len(val_loader.dataset), val_acc / len(val_loader.dataset)
@@ -91,7 +93,7 @@ for epoch in range(num_epochs):
     if epoch % test_display_step == 0 or epoch == num_epochs - 1:
         for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
-            ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = net(images)
+            ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = net(images)
             test_acc += (outputs.max(1)[1] == labels).sum().item()
         avg_test_acc = test_acc / len(test_loader.dataset)
         print(f'test_acc: {avg_test_acc:.4f}')

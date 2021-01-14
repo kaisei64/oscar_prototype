@@ -1,9 +1,10 @@
 import torch.nn.functional as F
 from dataset import *
 from util_func import list_of_distances
+import numpy as np
 
 class_num = 10
-prototype_num = 15
+prototype_num = 2
 in_channel_num = 1
 
 
@@ -81,5 +82,12 @@ class ProtoNet(nn.Module):
         feature_vectors = feature_vectors.reshape(batch_size, -1)
         prototype_distances = list_of_distances(feature_vectors, self.prototype_feature_vectors)
         feature_vector_distances = list_of_distances(self.prototype_feature_vectors, feature_vectors)
+        proto_proto_distances = list_of_distances(self.prototype_feature_vectors, self.prototype_feature_vectors).cpu().detach().numpy()
+        proto_proto_distances_triangular_matrix = torch.tensor(np.triu(proto_proto_distances, k=1)).flatten()
+        delete_index = np.where(proto_proto_distances_triangular_matrix == 0)
+        proto_proto_distances_triangular_matrix = torch.tensor(np.delete(proto_proto_distances_triangular_matrix, delete_index))
+        proto_proto_distances = torch.ones(proto_proto_distances_triangular_matrix.shape) + torch.tensor(2) - proto_proto_distances_triangular_matrix
+        proto_proto_distances = torch.max(proto_proto_distances, torch.zeros(proto_proto_distances.shape))
+        proto_proto_distances = torch.pow(proto_proto_distances, 2).sum()
         output = self.classifier(prototype_distances)
-        return ae_output, prototype_distances, feature_vector_distances, output, F.softmax(output)
+        return ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, output, F.softmax(output)

@@ -20,20 +20,20 @@ import math
 
 prototype = "15"
 offset = 0
-for k in range(2, 3):
-    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
+for k in range(1, 11):
+    train_net = parameter_use(f'./result/pkl/prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
     # train_net = parameter_use(f'./result/pkl/3NN_prototype_{prototype}/train_model_epoch500_{prototype}.pkl')
-    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/not_abs/prune_proto_finetune_from_small/'
+    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/abs/prune_proto_finetune_from_abs_large/'
     #                           f'prune_train_model_epoch{k}_{prototype}.pkl')
     # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/not_abs/prune_all_finetune_from_small_at_least_1weight/'
     #                           f'prune_train_model_epoch{k}_{prototype}.pkl')
     # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_dense/prune_finetune_once/prune_negative/'
     #                           f'prune_train_model_epoch2_{prototype}.pkl')
+    # if offset <= 650:
+    #     train_net = parameter_use(f'./result/pkl/prototype_{prototype}/near_epoch50/train_model_epoch{offset+1}_{prototype}.pkl')
+    # elif offset == 700:
+    #     train_net = parameter_use(f'./result/pkl/prototype_{prototype}/near_epoch50/train_model_epoch{offset}_{prototype}.pkl')
     # if offset <= 700:
-    #     train_net = parameter_use(f'./result/pkl/prototype_{prototype}/acc_once_epoch50/train_model_epoch{offset+1}_{prototype}.pkl')
-    # elif offset == 750:
-    #     train_net = parameter_use(f'./result/pkl/prototype_{prototype}/acc_once_epoch50/train_model_epoch{offset}_{prototype}.pkl')
-    # if offset <= 750:
     #     offset += 50
     # elif offset > 150:
     #     offset += 10
@@ -41,12 +41,13 @@ for k in range(2, 3):
     #                           f'prune_train_model_epoch{k}_{prototype}.pkl')
     # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/prune_proto/prune_all_finetune_from_near_epoch30/'
     #                           f'prune_train_model_epoch{k}_{prototype}.pkl')
-    train_net = parameter_use(f'./result/pkl/fashionmnist_prototype{prototype}/rotate/train_model_epoch500_{prototype}.pkl')
+    # train_net = parameter_use(f'./result/pkl/fashionmnist_prototype{prototype}/rotate/train_model_epoch500_{prototype}.pkl')
+    # train_net = parameter_use(f'./result/pkl/prototype_{prototype}/border/2/train_model_epoch100_15_border.pkl')
 
     examples_to_show = 10000
-    examples = [test_dataset[i][0] for i in range(examples_to_show)]
+    examples = [train_dataset[i][0] for i in range(examples_to_show)]
     examples = torch.cat(examples).reshape(len(examples), *examples[0].shape).to(device)
-    examples_labels = [test_dataset[i][1] for i in range(examples_to_show)]
+    examples_labels = [train_dataset[i][1] for i in range(examples_to_show)]
     examples_class_labels = examples_labels.copy()
     # Fashion MNIST
     # examples_class_labels_sub = examples_labels.copy()
@@ -94,15 +95,15 @@ for k in range(2, 3):
     con_vec = np.concatenate([feature_vec, prototype_feature_vec_2])
 
     # pca---------------------------------------------------
-    # pca = PCA(n_components=2)
+    # pca = PCA(n_components=20)
     # pca.fit(con_vec)
     # data_pca = pca.transform(con_vec)
     # t-sne-------------------------------------------------
-    # pca = manifold.TSNE(n_components=2, init='pca', random_state=0)
-    # data_pca = pca.fit_transform(feature_vec)
-    # umap--------------------------------------------------
-    pca = umap.UMAP()
+    pca = manifold.TSNE(n_components=2, init='pca', random_state=0)
     data_pca = pca.fit_transform(con_vec)
+    # umap--------------------------------------------------
+    # pca = umap.UMAP()
+    # data_pca = pca.fit_transform(con_vec)
     # parameter_save(f'./result/pkl/umap_prototype{prototype_num}.pkl', data_pca)
     # data_pca = parameter_use(f'./result/pkl/prototype_{prototype}/umap/umap_prototype{prototype_num}.pkl')
     # labels = np.array([test_dataset[i][1] for i in range(examples_to_show)])
@@ -130,23 +131,25 @@ for k in range(2, 3):
             texts.append(plt_text)
             j += 1
     # Specify the shape and color of the line pointing to the point plotted from the label with arrowprops
-    adjust_text(texts, arrowprops=dict(arrowstyle='-', color='gray', lw=7))
+    # adjust_text(texts, arrowprops=dict(arrowstyle='-', color='gray', lw=7))
+    adjust_text(texts)
     # legend_order = [color_set.index(val) for val in label_keep]
     # handles_order = [legend_order.index(val) for val in range(model.class_num)]
     # sorted_handles = [handles[idx] for idx in handles_order]
     # fig.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=1, fontsize=25, handles=sorted_handles, edgecolor='black')
 
-    # plt.savefig(f'./result/png/prototype_{prototype}/distribution_map.png')
+    plt.savefig(f'./result/png/prototype_{prototype}/distribution_map.png')
     # plt.savefig(f'./result/png/3NN_prototype_{prototype}/distribution_map.png')
-    # plt.savefig(f'./result/png/prototype_{prototype}/prune_dense/prune_finetune/not_abs/prune{k}_distribution_map_nolegend.png')
+    # plt.savefig(f'./result/png/prototype_{prototype}/prune_dense/prune_finetune/abs/prune{k}_distribution_map_nolegend.png')
     # plt.savefig(f'./result/png/prototype_{prototype}/prune_finetune_once/prune{k}_distribution_map.png')
-    # if offset <= 750:
+    # if offset <= 700:
     #     plt.savefig(f'./result/png/prototype_{prototype}/epoch{offset - 50 + 1}_prune_distribution_map.png')
     # elif 200 < offset <= 300:
     #     plt.savefig(f'./result/png/prototype_{prototype}/epoch{offset - 10 + 1}_prune_distribution_map.png')
-    # elif offset == 800:
+    # elif offset == 750:
     #     plt.savefig(f'./result/png/prototype_{prototype}/epoch{offset - 50}_prune_distribution_map.png')
     # plt.savefig(f'./result/png/fashionmnist_prototype{prototype}/prune_finetune/abs/prune{k}_distribution_map.png')
     # plt.savefig(f'./result/png/prototype_{prototype}/prune_proto/prune_finetune/prune{k}_distribution_map.png')
-    plt.savefig(f'./result/png/fashionmnist_prototype{prototype}/rotate/distribution_map.png')
+    # plt.savefig(f'./result/png/fashionmnist_prototype{prototype}/rotate/distribution_map.png')
+    # plt.savefig(f'./result/png/prototype_{prototype}/border/distribution_map.png')
     # plt.show()

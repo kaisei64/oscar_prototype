@@ -61,7 +61,7 @@ prune_index_list = np.argsort(weight_matrix.detach().cpu().numpy(), axis=0)[::-1
 #     avg_test_acc, test_acc = 0, 0
 #     for images, labels in test_loader:
 #         images, labels = images.to(device), labels.to(device)
-#         ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(images)
+#         ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(images)
 #         test_acc += (outputs.max(1)[1] == labels).sum().item()
 #     avg_test_acc = test_acc / len(test_loader.dataset)
 #     print(f'test_acc: {avg_test_acc:.4f}')
@@ -82,7 +82,7 @@ for count in range(class_num):
         avg_test_acc, test_acc = 0, 0
         for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
-            ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(images)
+            ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(images)
             test_acc += (outputs.max(1)[1] == labels).sum().item()
         avg_test_acc = test_acc / len(test_loader.dataset)
         print(f'test_acc: {avg_test_acc:.4f}')
@@ -127,7 +127,7 @@ for count in range(class_num):
     #                                                  .reshape(-1, in_channel_num, in_height, in_width)
     #         elastic_images, labels = torch.tensor(elastic_images, dtype=dtype).to(device), labels.to(device)
     #         optimizer.zero_grad()
-    #         ae_output, prototype_distances, feature_vector_distances, outputs, softmax_output = train_net(elastic_images)
+    #         ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = train_net(elastic_images)
     #         class_error = criterion(outputs, labels)
     #         train_class_error += criterion(outputs, labels)
     #         ae_error = torch.mean(list_of_norms(ae_output - images.to(device)))
