@@ -4,7 +4,7 @@ from util_func import list_of_distances
 import numpy as np
 
 class_num = 10
-prototype_num = 2
+prototype_num = 15
 in_channel_num = 1
 
 
