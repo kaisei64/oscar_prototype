@@ -4,7 +4,7 @@ pardir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(pardir)
 from dataset import *
 from model import ProtoNet, class_num, prototype_num, in_channel_num
-from util_func import batch_elastic_transform, list_of_norms, result_save, parameter_save
+from util_func import list_of_norms, result_save, parameter_save
 from loss import *
 import torch
 import torch.optim as optim
