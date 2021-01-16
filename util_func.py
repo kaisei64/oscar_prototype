@@ -5,48 +5,13 @@ import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy.ndimage.interpolation import map_coordinates
-from scipy.ndimage.filters import gaussian_filter
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 import itertools
-
-
-def split_train_val(train_val_dataset, train_rate):
-    n_samples = len(train_val_dataset)
-    train_size = int(len(train_val_dataset) * train_rate)
-    val_size = n_samples - train_size
-    return torch.utils.data.random_split(train_val_dataset, [train_size, val_size])
-
-
-def batch_elastic_transform(images, sigma, alpha, height, width, random_state=None):
-    """
-    this code is borrowed from chsasank on GitHubGist
-    Elastic deformation of images as described in [Simard 2003].
-
-    images: a two-dimensional numpy array; we can think of it as a list of flattened images
-    sigma: the real-valued variance of the gaussian kernel
-    alpha: a real-value that is multiplied onto the displacement fields
-
-    returns: an elastically distorted image of the same shape
-    """
-    import dataset
-    assert len(images.shape) == 2
-    # the two lines below ensure we do not alter the array images
-    e_images = np.empty_like(images)
-    e_images[:] = images
-    e_images = e_images.reshape(-1, height, width)
-
-    if random_state is None:
-        random_state = np.random.RandomState(None)
-
-    x, y = np.mgrid[0:height, 0:width]
-    for i in range(e_images.shape[0]):
-        dx = gaussian_filter((random_state.rand(height, width) * 2 - 1), sigma, mode='constant') * alpha
-        dy = gaussian_filter((random_state.rand(height, width) * 2 - 1), sigma, mode='constant') * alpha
-        indices = x + dx, y + dy
-        e_images[i] = map_coordinates(e_images[i], indices, order=1)
-    return e_images.reshape(-1, dataset.in_height*dataset.in_width)
+from dataset import batch_size, verbose
+import time
 
 
 def list_of_distances(x, y):
@@ -196,3 +161,57 @@ def outlier_2s(col):
     outlier_min = average - sd * 1
     outlier_max = average + sd * 1
     return outlier_min, outlier_max
+
+
+class AverageMeter(object):
+    """Computes and stores the average and current value"""
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.val = 0
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def update(self, val, n=1):
+        self.val = val
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count
+
+
+def compute_features(dataloader, model, N):
+    if verbose:
+        print('Compute features')
+    batch_time = AverageMeter()
+    end = time.time()
+    model.eval()
+    # discard the label information in the dataloader
+    for i, (input_tensor, _) in enumerate(dataloader):
+        input_var = torch.autograd.Variable(input_tensor.cuda(), volatile=True)
+        aux = model(input_var).reshape(-1, 40).data.cpu().numpy()
+
+        if i == 0:
+            features = np.zeros((N, aux.shape[1]), dtype='float32')
+
+        aux = aux.astype('float32')
+        if i < len(dataloader) - 1:
+            features[i * batch_size: (i + 1) * batch_size] = aux
+        else:
+            # special treatment for final batch
+            # print(i)
+            # print(len(aux))
+            # print(aux.shape)
+            # print(features[i*batch_size:].shape)
+            features[i * batch_size:] = aux
+
+        # measure elapsed time
+        batch_time.update(time.time() - end)
+        end = time.time()
+
+        if verbose and (i % 50) == 0:
+            print('{0} / {1}\t'
+                  'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})'
+                  .format(i, len(dataloader), batch_time=batch_time))
+    return features
