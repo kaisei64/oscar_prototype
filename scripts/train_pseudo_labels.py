@@ -13,8 +13,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import math
-import warnings
-warnings.simplefilter('ignore')
+# import warnings
+# warnings.simplefilter('ignore')
 
 learning_history = {'epoch': [], 'train_acc': [], 'train_total_loss': [], 'train_class_loss': [], 'train_ae_loss': [],
                     'train_error_1_loss': [], 'train_error_2_loss': [], 'test_acc': []}
@@ -28,8 +28,8 @@ optimizer = optim.Adam(net.parameters(), lr=0.002)
 
 # training parameters
 num_epochs = 500
-test_display_step = 50
-save_step = 50
+test_display_step = 30
+save_step = 30
 threshold_dis = 1
 nmb_cluster = 10
 # how many epochs of training between two consecutive reassignments of clusters
@@ -49,7 +49,7 @@ for epoch in range(num_epochs):
     # cluster the features
     if verbose:
         print('Cluster the features')
-    clustering_loss = pseudo_cluster.cluster(features, verbose=verbose)
+    clustering_loss = pseudo_cluster.cluster(features, epoch, verbose=verbose)
 
     # assign pseudo-labels
     if verbose:
@@ -63,7 +63,7 @@ for epoch in range(num_epochs):
     pseudo_train_dataloader = torch.utils.data.DataLoader(
         dataset=pseudo_train_dataset,
         batch_size=batch_size,
-        num_workers=0,
+        num_workers=2,
         sampler=sampler,
         pin_memory=True,
     )
@@ -72,10 +72,11 @@ for epoch in range(num_epochs):
     net.train()
     train_loss, train_acc, train_class_error, train_ae_error, train_error_1, train_error_2 = 0, 0, 0, 0, 0, 0
     for i, (images, labels) in enumerate(pseudo_train_dataloader):
-        elastic_images = batch_elastic_transform(images.reshape(-1, in_height*in_width), sigma=sigma, alpha=alpha,
-                                                 height=in_height, width=in_width)\
-                                                 .reshape(-1, in_channel_num, in_height, in_width)
-        elastic_images, labels = torch.tensor(elastic_images, dtype=dtype).to(device), labels.to(device)
+        # elastic_images = batch_elastic_transform(images.reshape(-1, in_height*in_width), sigma=sigma, alpha=alpha,
+        #                                          height=in_height, width=in_width)\
+        #                                          .reshape(-1, in_channel_num, in_height, in_width)
+        # elastic_images, labels = torch.tensor(elastic_images, dtype=dtype).to(device), labels.to(device)
+        elastic_images, labels = torch.tensor(images, dtype=dtype).to(device), labels.to(device)
         optimizer.zero_grad()
         ae_output, prototype_distances, feature_vector_distances, proto_proto_distances, outputs, softmax_output = net(elastic_images)
         class_error = criterion(outputs, labels)
@@ -97,7 +98,7 @@ for epoch in range(num_epochs):
     avg_train_class_error, avg_train_ae_error = train_class_error / len(pseudo_train_dataloader.dataset), train_ae_error / len(pseudo_train_dataloader.dataset)
     avg_train_error_1, avg_train_error_2 = train_error_1 / len(pseudo_train_dataloader.dataset), train_error_2 / len(pseudo_train_dataloader.dataset)
     print(f'epoch [{epoch + 1}/{num_epochs}], train_loss: {avg_train_loss:.4f}, train_acc: {avg_train_acc:.4f}',
-          f'clustering_loss{clustering_loss:.4f}')
+          f'clustering_loss: {clustering_loss:.4f}')
 
     # val
     # net.eval()
