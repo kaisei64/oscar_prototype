@@ -7,6 +7,7 @@ from scipy.sparse import csr_matrix, find
 import torch
 import torch.utils.data as data
 import torchvision.transforms as transforms
+from util_func import kmeans_visualization
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -22,7 +23,8 @@ def pil_loader(path):
     """
     with open(path, 'rb') as f:
         img = Image.open(f)
-        return img.convert('RGB')
+        # return img.convert('RGB')
+        return img
 
 
 class ReassignedDataset(data.Dataset):
@@ -57,7 +59,8 @@ class ReassignedDataset(data.Dataset):
             tuple: (image, pseudolabel) where pseudolabel is the cluster of index datapoint
         """
         path, pseudolabel = self.imgs[index]
-        img = pil_loader(path)
+        # img = pil_loader(path)
+        img = path
         if self.transform is not None:
             img = self.transform(img)
         return img, pseudolabel
@@ -116,12 +119,10 @@ def make_graph(xb, nnn):
 def cluster_assign(images_lists, dataset):
     """Creates a dataset from clustering, with clusters as labels.
     Args:
-        images_lists (list of list): for each cluster, the list of image indexes
-                                    belonging to this cluster
+        images_lists (list of list): for each cluster, the list of image indexes belonging to this cluster
         dataset (list): initial dataset
     Returns:
-        ReassignedDataset(torch.utils.data.Dataset): a dataset with clusters as
-                                                     labels
+        ReassignedDataset(torch.utils.data.Dataset): a dataset with clusters as labels
     """
     assert images_lists is not None
     pseudolabels = []
@@ -130,17 +131,18 @@ def cluster_assign(images_lists, dataset):
         image_indexes.extend(images)
         pseudolabels.extend([cluster] * len(images))
 
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
-    t = transforms.Compose([transforms.RandomResizedCrop(224),
-                            transforms.RandomHorizontalFlip(),
-                            transforms.ToTensor(),
-                            normalize])
+    # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+    #                                  std=[0.229, 0.224, 0.225])
+    # t = transforms.Compose([transforms.RandomResizedCrop(224),
+    #                         transforms.RandomHorizontalFlip(),
+    #                         transforms.ToTensor(),
+    #                         normalize])
 
-    return ReassignedDataset(image_indexes, pseudolabels, dataset, t)
+    # return ReassignedDataset(image_indexes, pseudolabels, dataset, t)
+    return ReassignedDataset(image_indexes, pseudolabels, dataset)
 
 
-def run_kmeans(x, nmb_clusters, verbose=False):
+def run_kmeans(x, nmb_clusters, epoch, verbose=False):
     """Runs kmeans on 1 GPU.
     Args:
         x: data
@@ -158,8 +160,9 @@ def run_kmeans(x, nmb_clusters, verbose=False):
     # from an epoch to another.
     clus.seed = np.random.randint(1234)
 
+    # Number of iterations of the clustering algorithm
     clus.niter = 20
-    clus.max_points_per_centroid = 10000000
+    clus.max_points_per_centroid = 10000
     res = faiss.StandardGpuResources()
     flat_config = faiss.GpuIndexFlatConfig()
     flat_config.useFloat16 = False
@@ -169,14 +172,17 @@ def run_kmeans(x, nmb_clusters, verbose=False):
     # perform the training
     clus.train(x, index)
     _, I = index.search(x, 1)
+    label_list = [int(n[0]) for n in I]
+    clus_center_list = faiss.vector_float_to_array(clus.centroids).reshape(-1, 40)
+    # kmeans visualization
+    if epoch % 30 == 0:
+        kmeans_visualization(x, clus_center_list, label_list, f'./result/png/distribution_map_epoch{epoch}.png')
     stats = clus.iteration_stats
-    losses = np.array([
-        stats.at(i).obj for i in range(stats.size())
-    ])
+    losses = np.array([stats.at(i).obj for i in range(stats.size())])
     if verbose:
         print('k-means loss evolution: {0}'.format(losses))
 
-    return [int(n[0]) for n in I], losses[-1]
+    return label_list, losses[-1]
 
 
 def arrange_clustering(images_lists):
@@ -193,7 +199,7 @@ class Kmeans(object):
     def __init__(self, k):
         self.k = k
 
-    def cluster(self, data, verbose=False):
+    def cluster(self, data, epoch, verbose=False):
         """Performs k-means clustering.
             Args:
                 x_data (np.array N * dim): data to cluster
@@ -205,7 +211,7 @@ class Kmeans(object):
 
         # cluster the data
         # I, loss = run_kmeans(xb, self.k, verbose)
-        I, loss = run_kmeans(data, self.k, verbose)
+        I, loss = run_kmeans(data, self.k, epoch, verbose)
         self.images_lists = [[] for i in range(self.k)]
         for i in range(len(data)):
             self.images_lists[I[i]].append(i)
@@ -219,10 +225,8 @@ class Kmeans(object):
 def make_adjacencyW(I, D, sigma):
     """Create adjacency matrix with a Gaussian kernel.
     Args:
-        I (numpy array): for each vertex the ids to its nnn linked vertices
-                  + first column of identity.
-        D (numpy array): for each data the l2 distances to its nnn linked vertices
-                  + first column of zeros.
+        I (numpy array): for each vertex the ids to its nnn linked vertices + first column of identity.
+        D (numpy array): for each data the l2 distances to its nnn linked vertices + first column of zeros.
         sigma (float): Bandwidth of the Gaussian kernel.
     Returns:
         csr_matrix: affinity matrix of the graph.
@@ -315,13 +319,10 @@ class PIC(object):
             sigma (float): bandwidth of the Gaussian kernel (default 0.2)
             nnn (int): number of nearest neighbors (default 5)
             alpha (float): parameter in PIC (default 0.001)
-            distribute_singletons (bool): If True, reassign each singleton to
-                                      the cluster of its closest non
-                                      singleton nearest neighbors (up to nnn
-                                      nearest neighbors).
+            distribute_singletons (bool): If True, reassign each singleton to the cluster of its closest non
+                                      singleton nearest neighbors (up to nnn nearest neighbors).
         Attributes:
-            images_lists (list of list): for each cluster, the list of image indexes
-                                         belonging to this cluster
+            images_lists (list of list): for each cluster, the list of image indexes belonging to this cluster
     """
 
     def __init__(self, args=None, sigma=0.2, nnn=5, alpha=0.001, distribute_singletons=True):
