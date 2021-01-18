@@ -269,7 +269,7 @@ class UnifLabelSampler(Sampler):
         return len(self.indexes)
 
 
-def kmeans_visualization(data_list, center_list, label_list):
+def kmeans_visualization(data_list, center_list, label_list, path):
     con_vec = np.concatenate([np.array(data_list), np.array(center_list)])
     # t-sne-------------------------------------------------
     # t_sne = manifold.TSNE(n_components=2, init='pca', random_state=0)
@@ -301,5 +301,5 @@ def kmeans_visualization(data_list, center_list, label_list):
             texts.append(plt_text)
             j += 1
     adjust_text(texts)
-    plt.savefig(f'./result/png/distribution_map.png')
+    plt.savefig(path)
     # plt.show()
