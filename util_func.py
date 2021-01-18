@@ -13,6 +13,10 @@ import itertools
 from dataset import batch_size, verbose
 import time
 from torch.utils.data.sampler import Sampler
+from sklearn import manifold
+from adjustText import adjust_text
+import umap
+import umap.plot
 
 
 def list_of_distances(x, y):
@@ -263,3 +267,39 @@ class UnifLabelSampler(Sampler):
 
     def __len__(self):
         return len(self.indexes)
+
+
+def kmeans_visualization(data_list, center_list, label_list):
+    con_vec = np.concatenate([np.array(data_list), np.array(center_list)])
+    # t-sne-------------------------------------------------
+    # t_sne = manifold.TSNE(n_components=2, init='pca', random_state=0)
+    # data_t_sne = t_sne.fit_transform(con_vec)
+    # umap--------------------------------------------------
+    pca = umap.UMAP()
+    data_t_sne = pca.fit_transform(con_vec)
+    fig = plt.figure(figsize=(15, 12), facecolor='w', tight_layout=True)
+    plt.rcParams["font.size"] = 15
+    color = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    prototype_name = [chr(ord('A') + i) for i in range(len(center_list))]
+    handles, label_keep, texts = [], [], []
+    j = 0
+    for i in range(len(data_list) + len(center_list)):
+        # plot data
+        if i < len(data_list):
+            line, = plt.plot(data_t_sne[i][0], data_t_sne[i][1], ms=5.0, zorder=2, marker="x",
+                             # color=examples_labels[i], label=examples_class_labels[i])
+                             label=label_list[i])
+            plt.tick_params(labelsize=38)
+            # if not (examples_labels[i] in label_keep):
+            #     label_keep.append(examples_labels[i])
+            #     handles.append(line)
+        # plot prototype
+        else:
+            plt.plot(data_t_sne[i][0], data_t_sne[i][1], ms=50.0, zorder=2, marker=".", color='gray')
+            # show prototype order
+            plt_text = plt.annotate(prototype_name[j], (data_t_sne[i][0], data_t_sne[i][1]), size=60)
+            texts.append(plt_text)
+            j += 1
+    adjust_text(texts)
+    plt.savefig(f'./result/png/distribution_map.png')
+    # plt.show()
