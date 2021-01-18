@@ -190,7 +190,8 @@ def compute_features(dataloader, model, N):
     model.eval()
     # discard the label information in the dataloader
     for i, (input_tensor, _) in enumerate(dataloader):
-        input_var = torch.autograd.Variable(input_tensor.cuda(), volatile=True)
+        with torch.no_grad():
+            input_var = torch.autograd.Variable(input_tensor.cuda())
         aux = model(input_var).reshape(-1, 40).data.cpu().numpy()
 
         if i == 0:
