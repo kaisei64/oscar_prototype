@@ -27,7 +27,7 @@ net = ProtoNet().to(device)
 optimizer = optim.Adam(net.parameters(), lr=0.002)
 
 # training parameters
-num_epochs = 500
+num_epochs = 300
 test_display_step = 30
 save_step = 30
 threshold_dis = 1
@@ -43,7 +43,7 @@ alpha = 20
 pseudo_cluster = clustering.Kmeans(nmb_cluster)
 
 for epoch in range(num_epochs):
-    # assign pseudo_labels
+    # assign pseudo_labels-------------------------------------------------------------------------------------------
     # get the features for the whole dataset
     features = compute_features(train_val_loader, net.encoder, len(train_val_dataset))
     # cluster the features
@@ -67,6 +67,7 @@ for epoch in range(num_epochs):
         sampler=sampler,
         pin_memory=True,
     )
+    # ---------------------------------------------------------------------------------------------------------------
 
     # train
     net.train()

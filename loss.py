@@ -1,7 +1,7 @@
 lambda_class = 20
-lambda_ae = 1
-lambda_1 = 1
-lambda_2 = 1
+lambda_ae = 10
+lambda_1 = 5
+lambda_2 = 5
 lambda_3 = 1
 
 

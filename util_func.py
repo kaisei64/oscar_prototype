@@ -52,11 +52,14 @@ def result_save(path, learning_history):
 def parameter_save(path, param):
     with open(path, 'wb') as f:
         cloudpickle.dump(param, f)
+    # torch.save(param.state_dict(), path)
 
 
 def parameter_use(path):
     with open(path, 'rb') as f:
         return cloudpickle.load(f)
+    # the_model = TheModelClass(*args, **kwargs)
+    # the_model.load_state_dict(torch.load(path))
 
 
 def loss_vis(path, epoch, history):
@@ -286,9 +289,9 @@ def kmeans_visualization(data_list, center_list, label_list, path):
     for i in range(len(data_list) + len(center_list)):
         # plot data
         if i < len(data_list):
-            line, = plt.plot(data_t_sne[i][0], data_t_sne[i][1], ms=5.0, zorder=2, marker="x",
+            line, = plt.plot(data_t_sne[i][0], data_t_sne[i][1], ms=5.0, zorder=2, marker="x")
                              # color=examples_labels[i], label=examples_class_labels[i])
-                             label=label_list[i])
+                             # , label=label_list[i])
             plt.tick_params(labelsize=38)
             # if not (examples_labels[i] in label_keep):
             #     label_keep.append(examples_labels[i])
