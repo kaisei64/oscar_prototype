@@ -45,7 +45,7 @@ def list_of_norms(x):
 
 def result_save(path, learning_history):
     df = pd.DataFrame.from_dict(learning_history)
-    df.to_csv(path)
+    df.to_csv(path, sep='\t')
 
 
 def parameter_save(path, param):
