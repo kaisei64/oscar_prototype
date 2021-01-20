@@ -5,14 +5,12 @@ import torchvision.transforms as transforms
 import numpy as np
 from scipy.ndimage.interpolation import map_coordinates
 from scipy.ndimage.filters import gaussian_filter
-# from util_func import split_train_val, batch_elastic_transform
 
 device = 'cuda'
 dtype = torch.float
 criterion = nn.CrossEntropyLoss()
 batch_size = 250
 in_height, in_width = 28, 28
-verbose = True
 
 
 def split_train_val(dataset, train_rate):
@@ -81,10 +79,6 @@ test_dataset = torchvision.datasets.MNIST(root='./data/',
                                             transform=transform_test,
                                             download=True)
 
-train_val_loader = torch.utils.data.DataLoader(dataset=train_val_dataset,
-                                               batch_size=batch_size,
-                                               shuffle=True,
-                                               num_workers=2)
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            batch_size=batch_size,
                                            shuffle=True,
